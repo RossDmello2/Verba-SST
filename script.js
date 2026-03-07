@@ -247,6 +247,54 @@
           </div>
         </div>
 
+        <div class="tool-panel utility-card-ai">
+          <div class="tool-header">
+            <div>
+              <div class="tool-title">AI Output</div>
+              <div class="tool-sub">Groq-first summaries, action items, and prompt packs using your configured provider and chat model.</div>
+            </div>
+            <div class="inline-actions">
+              <button class="micro-btn" id="copyAiOutputBtn">Copy</button>
+              <button class="micro-btn" id="clearAiOutputBtn">Clear</button>
+            </div>
+          </div>
+          <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="true" aria-controls="aiOutputPanel">
+            <span>AI output tools</span>
+            <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="ai-output-panel" id="aiOutputPanel">
+            <div class="field full">
+              <label for="outputStyleSelect">Output style</label>
+              <select id="outputStyleSelect" class="studio-select">
+                <option value="default">Default</option>
+                <option value="concise">Concise</option>
+                <option value="executive">Executive</option>
+                <option value="technical">Technical</option>
+                <option value="founder">Founder</option>
+                <option value="client-ready">Client-ready</option>
+                <option value="meeting-notes">Meeting Notes</option>
+              </select>
+              <div class="mini-note" id="aiContextNote">AI Output will use the active memory pack and selected style automatically.</div>
+            </div>
+            <div class="inline-actions" style="margin-bottom:10px;">
+              <button class="pill-btn" id="cleanAiBtn">AI Clean</button>
+              <button class="pill-btn" id="summaryBtn">Summary</button>
+              <button class="pill-btn" id="actionItemsBtn">Action Items</button>
+              <button class="pill-btn" id="promptPackBtn">Prompt Pack</button>
+            </div>
+            <div class="field full">
+              <label for="askTranscriptInput">Ask This Transcript</label>
+              <textarea id="askTranscriptInput" class="studio-textarea ask-transcript-input" placeholder="Ask a direct question about this transcript. Example: What are the blockers, what should I do next, or convert this into a client-ready brief?"></textarea>
+              <div class="inline-actions">
+                <button class="pill-btn" id="askTranscriptBtn">Ask transcript</button>
+              </div>
+            </div>
+            <div class="output-stack">
+              <textarea id="aiOutput" class="ai-output" placeholder="AI notes, cleaned transcript, summaries, or paste-ready prompts will appear here."></textarea>
+              <div class="mini-note">Recommended on Groq: openai/gpt-oss-120b. Use openai/gpt-oss-20b when you want a faster fallback.</div>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <div class="workspace-main">
@@ -323,69 +371,84 @@
           <div class="segments-view" id="segmentsView"></div>
         </div>
 
-        <div class="studio-grid studio-grid-main">
-          <div class="tool-panel utility-card-ai utility-card-ai-main">
-            <div class="tool-header">
-              <div>
-                <div class="tool-title">AI Output</div>
-                <div class="tool-sub">Groq-first summaries, action items, and prompt packs using your configured provider and chat model.</div>
-              </div>
-              <div class="inline-actions">
-                <button class="micro-btn" id="copyAiOutputBtn">Copy</button>
-                <button class="micro-btn" id="clearAiOutputBtn">Clear</button>
-              </div>
-            </div>
-            <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="true" aria-controls="aiOutputPanel">
-              <span>AI output tools</span>
-              <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="ai-output-panel" id="aiOutputPanel">
-              <div class="inline-actions" style="margin-bottom:10px;">
-                <button class="pill-btn" id="cleanAiBtn">AI Clean</button>
-                <button class="pill-btn" id="summaryBtn">Summary</button>
-                <button class="pill-btn" id="actionItemsBtn">Action Items</button>
-                <button class="pill-btn" id="promptPackBtn">Prompt Pack</button>
-              </div>
-              <div class="output-stack">
-                <textarea id="aiOutput" class="ai-output" placeholder="AI notes, cleaned transcript, summaries, or paste-ready prompts will appear here."></textarea>
-                <div class="mini-note">Recommended on Groq: openai/gpt-oss-120b. Use openai/gpt-oss-20b when you want a faster fallback.</div>
-              </div>
-            </div>
-          </div>
+        <div class="studio-grid studio-grid-single">
           <div class="tool-panel">
             <div class="tool-header">
               <div>
-                <div class="tool-title">Transcript Studio</div>
-                <div class="tool-sub">Glossary correction, local cleanup, redaction, and speaker-first editing.</div>
+                <div class="tool-title">Imported Memory</div>
+                <div class="tool-sub">Paste your exported memory once so AI Output and Verba Assistant can generate more accurate summaries, action items, prompt packs, and answers.</div>
               </div>
               <div class="workspace-meta">
+                <span class="workspace-chip" id="memoryStatusChip">No memory loaded</span>
                 <span class="workspace-chip" id="workspaceStatus">Workspace idle</span>
                 <span class="workspace-chip" id="cacheStatus">Cache idle</span>
               </div>
             </div>
-            <div class="tool-grid">
+            <div class="memory-stack">
               <div class="field full">
-                <label for="glossaryInput">Glossary / replacement memory</label>
-                <textarea id="glossaryInput" class="studio-textarea" placeholder="One rule per line - examples:
+                <label for="memoryPackSelect">Project memory pack</label>
+                <div class="tool-grid">
+                  <div class="field">
+                    <select id="memoryPackSelect" class="studio-select" aria-label="Project memory pack"></select>
+                  </div>
+                  <div class="field">
+                    <input type="text" id="memoryPackNameInput" class="studio-input" placeholder="New pack name">
+                  </div>
+                </div>
+                <div class="inline-actions">
+                  <button class="pill-btn" id="createMemoryPackBtn">Create pack</button>
+                  <button class="pill-btn" id="deleteMemoryPackBtn">Delete pack</button>
+                </div>
+                <div class="mini-note" id="memoryPackMeta">Use separate packs for workstreams like Client A, Startup, Personal, or Research.</div>
+              </div>
+              <div class="field full">
+                <label for="memoryPromptExport">Import memory prompt</label>
+                <div class="mini-note">Copy this prompt into your other AI provider, export your memory, then paste the result below.</div>
+                <textarea id="memoryPromptExport" class="studio-textarea memory-prompt-box" readonly spellcheck="false"></textarea>
+                <div class="inline-actions">
+                  <button class="pill-btn" id="copyMemoryPromptBtn">Copy prompt</button>
+                </div>
+              </div>
+              <div class="field full">
+                <label for="memoryInput">Imported memory</label>
+                <textarea id="memoryInput" class="studio-textarea memory-input" placeholder="Paste your exported memory here. The app will use it for AI Output and Verba Assistant."></textarea>
+                <div class="mini-note" id="memoryMeta">No imported memory yet. Once saved, it will ground summaries, action items, prompt packs, AI clean, and assistant replies.</div>
+                <div class="inline-actions">
+                  <button class="pill-btn" id="importMemoryBtn">Import memory</button>
+                  <button class="pill-btn" id="clearMemoryBtn">Clear memory</button>
+                </div>
+              </div>
+              <div class="field full">
+                <div class="mini-note">Imported memory is treated as long-term user context. Transcript text remains the source of current facts, while memory supplies preferences, projects, terminology, and working style.</div>
+              </div>
+              <button class="pill-btn preset-pill capture-help-toggle memory-tools-toggle" id="memoryToolsToggle" type="button" aria-expanded="false" aria-controls="memoryToolsPanel">
+                <span>Advanced transcript tools</span>
+                <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="memory-tools-panel" id="memoryToolsPanel" hidden>
+                <div class="field full">
+                  <label for="glossaryInput">Terminology / local replacements</label>
+                  <textarea id="glossaryInput" class="studio-textarea" placeholder="One rule per line - examples:
 hpcl => HPCL
 n8n => n8n
 qdrant => Qdrant"></textarea>
-                <div class="mini-note">Applied locally after transcription and whenever you click Apply Glossary.</div>
-              </div>
-              <div class="field full">
-                <div class="inline-actions">
-                  <button class="pill-btn" id="applyGlossaryBtn">Apply glossary</button>
-                  <button class="pill-btn" id="cleanLocalBtn">Clean locally</button>
-                  <button class="pill-btn" id="redactBtn">Redact PII</button>
-                  <button class="pill-btn" id="saveWorkspaceBtn">Save workspace</button>
-                  <button class="pill-btn" id="exportWorkspaceBtn">Export workspace</button>
-                  <button class="pill-btn" id="importWorkspaceBtn">Import workspace</button>
-                  <button class="pill-btn" id="clearCacheBtn">Clear cache</button>
+                  <div class="mini-note">Applied locally after transcription and whenever you click Apply Glossary.</div>
                 </div>
-                <input class="import-input" type="file" id="workspaceFileInput" accept=".json,application/json">
-              </div>
-              <div class="field full">
-                <div class="mini-note warning-note">Do not paste real API keys into the transcript or exported workspace if you plan to share the file.</div>
+                <div class="field full">
+                  <div class="inline-actions">
+                    <button class="pill-btn" id="applyGlossaryBtn">Apply glossary</button>
+                    <button class="pill-btn" id="cleanLocalBtn">Clean locally</button>
+                    <button class="pill-btn" id="redactBtn">Redact PII</button>
+                    <button class="pill-btn" id="saveWorkspaceBtn">Save workspace</button>
+                    <button class="pill-btn" id="exportWorkspaceBtn">Export workspace</button>
+                    <button class="pill-btn" id="importWorkspaceBtn">Import workspace</button>
+                    <button class="pill-btn" id="clearCacheBtn">Clear cache</button>
+                  </div>
+                  <input class="import-input" type="file" id="workspaceFileInput" accept=".json,application/json">
+                </div>
+                <div class="field full">
+                  <div class="mini-note warning-note">Do not paste real API keys into the transcript, imported memory, or exported workspace if you plan to share the file.</div>
+                </div>
               </div>
             </div>
           </div>
@@ -420,13 +483,17 @@ qdrant => Qdrant"></textarea>
           </div>
           <div class="summary-meta-grid">
             <div class="summary-meta-block">
+              <span class="summary-label">Detected language</span>
+              <span class="detected-lang-badge" id="detectedLangBadge" style="display:none"></span>
+            </div>
+            <div class="summary-meta-block">
+              <span class="summary-label">Segments</span>
+              <span class="summary-value" id="segCount">0 segments</span>
+            </div>
+            <div class="summary-meta-block">
               <span class="summary-label">Duration</span>
               <span class="summary-value" id="durStat">0:00 duration</span>
             </div>
-          </div>
-          <div class="runtime-hidden-metrics" aria-hidden="true">
-            <span class="detected-lang-badge" id="detectedLangBadge" style="display:none"></span>
-            <span class="summary-value" id="segCount">0 segments</span>
           </div>
         </div>
 
@@ -526,7 +593,7 @@ qdrant => Qdrant"></textarea>
           <button class="assistant-chip" data-prompt="How do exports and workspace save work?">Export + Save</button>
         </div>
         <div class="assistant-empty" id="assistantEmpty">
-          Ask about modes, language selection, provider setup, Transcript Studio, exports, AI Output, presets, or the current runtime state.
+          Ask about modes, language selection, provider setup, imported memory, exports, AI Output, presets, or the current runtime state.
         </div>
         <div class="assistant-messages" id="assistantMessages"></div>
         <div class="assistant-footer">
@@ -537,6 +604,14 @@ qdrant => Qdrant"></textarea>
               <select id="assistantModelSelect" class="assistant-model-select" aria-label="Assistant model">
                 <option value="">Loading models...</option>
               </select>
+              <button class="assistant-mic-btn" id="assistantMicBtn" type="button" aria-label="Start voice input" title="Voice input (English)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V6a3 3 0 0 1 3-3z"></path>
+                  <path d="M19 11a7 7 0 0 1-14 0"></path>
+                  <path d="M12 18v3"></path>
+                  <path d="M8 21h8"></path>
+                </svg>
+              </button>
               <button class="assistant-send" id="assistantSend" aria-label="Send assistant message">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
               </button>
@@ -625,6 +700,18 @@ qdrant => Qdrant"></textarea>
                 })(),
                 preset: localStorage.getItem('vt_preset') || 'dictation',
                 glossaryRaw: localStorage.getItem('vt_glossary') || 'hpcl => HPCL\nn8n => n8n\nqdrant => Qdrant',
+                memoryRaw: localStorage.getItem('vt_memory_raw') || '',
+                memoryImportedAt: localStorage.getItem('vt_memory_imported_at') || '',
+                memoryPacks: (() => {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem('vt_memory_packs') || '[]');
+                        return Array.isArray(saved) ? saved : [];
+                    } catch (e) {
+                        return [];
+                    }
+                })(),
+                activeMemoryPackId: localStorage.getItem('vt_memory_pack_active') || '',
+                outputStyle: localStorage.getItem('vt_output_style') || 'default',
                 autosaveEnabled: localStorage.getItem('vt_autosave') !== '0',
                 speakerMode: localStorage.getItem('vt_speaker_mode') === '1',
                 fileHash: '',
@@ -643,6 +730,7 @@ qdrant => Qdrant"></textarea>
                     maximized: false,
                     showHistory: false,
                     isSending: false,
+                    isListening: false,
                     unread: 0,
                     draft: sessionStorage.getItem('vt_assistant_draft') || '',
                     currentConversationId: localStorage.getItem('vt_assistant_current') || '',
@@ -679,6 +767,33 @@ qdrant => Qdrant"></textarea>
             };
 
             const AUTO_COPY_DELAY = 4000;
+            const MEMORY_IMPORT_PROMPT = [
+                "Export all of my stored memories and any context you've learned about me from past conversations. Preserve my words verbatim where possible, especially for instructions and preferences.",
+                "",
+                "## Categories (output in this order):",
+                "",
+                "1. **Instructions**: Rules I've explicitly asked you to follow going forward — tone, format, style, \"always do X\", \"never do Y\", and corrections to your behavior. Only include rules from stored memories, not from conversations.",
+                "",
+                "2. **Identity**: Name, age, location, education, family, relationships, languages, and personal interests.",
+                "",
+                "3. **Career**: Current and past roles, companies, and general skill areas.",
+                "",
+                "4. **Projects**: Projects I meaningfully built or committed to. Ideally ONE entry per project. Include what it does, current status, and any key decisions. Use the project name or a short descriptor as the first words of the entry.",
+                "",
+                "5. **Preferences**: Opinions, tastes, and working-style preferences that apply broadly.",
+                "",
+                "## Format:",
+                "",
+                "Use section headers for each category. Within each category, list one entry per line, sorted by oldest date first. Format each line as:",
+                "",
+                "[YYYY-MM-DD] - Entry content here.",
+                "",
+                "If no date is known, use [unknown] instead.",
+                "",
+                "## Output:",
+                "- Wrap the entire export in a single code block for easy copying.",
+                "- After the code block, state whether this is the complete set or if more remain."
+            ].join('\n');
 
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // ELEMENTS
@@ -766,8 +881,26 @@ qdrant => Qdrant"></textarea>
             const chatModelSuggestions = $('chatModelSuggestions');
             const apiKeyVault = $('apiKeyVault');
             let apiVaultMeta = $('apiVaultMeta');
+            const memoryStatusChip = $('memoryStatusChip');
+            const memoryPackSelect = $('memoryPackSelect');
+            const memoryPackNameInput = $('memoryPackNameInput');
+            const createMemoryPackBtn = $('createMemoryPackBtn');
+            const deleteMemoryPackBtn = $('deleteMemoryPackBtn');
+            const memoryPackMeta = $('memoryPackMeta');
+            const memoryPromptExport = $('memoryPromptExport');
+            const copyMemoryPromptBtn = $('copyMemoryPromptBtn');
+            const memoryInput = $('memoryInput');
+            const memoryMeta = $('memoryMeta');
+            const importMemoryBtn = $('importMemoryBtn');
+            const clearMemoryBtn = $('clearMemoryBtn');
+            const memoryToolsToggle = $('memoryToolsToggle');
+            const memoryToolsPanel = $('memoryToolsPanel');
             const glossaryInput = $('glossaryInput');
             const aiOutput = $('aiOutput');
+            const outputStyleSelect = $('outputStyleSelect');
+            const aiContextNote = $('aiContextNote');
+            const askTranscriptInput = $('askTranscriptInput');
+            const askTranscriptBtn = $('askTranscriptBtn');
             const workspaceFileInput = $('workspaceFileInput');
             const assistantShell = $('assistantShell');
             const assistantPanel = $('assistantPanel');
@@ -778,6 +911,7 @@ qdrant => Qdrant"></textarea>
             const assistantRuntimeMeta = $('assistantRuntimeMeta');
             const assistantModelMeta = $('assistantModelMeta');
             const assistantModelSelect = $('assistantModelSelect');
+            const assistantMicBtn = $('assistantMicBtn');
             const assistantHistoryPanel = $('assistantHistoryPanel');
             const assistantHistoryList = $('assistantHistoryList');
             const assistantEmpty = $('assistantEmpty');
@@ -904,6 +1038,215 @@ qdrant => Qdrant"></textarea>
                 if (aiOutputPanel) aiOutputPanel.hidden = !open;
                 aiOutputToggle?.classList.toggle('active', open);
                 aiOutputToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+
+            function setMemoryToolsOpen(nextOpen) {
+                const open = !!nextOpen;
+                if (memoryToolsPanel) memoryToolsPanel.hidden = !open;
+                memoryToolsToggle?.classList.toggle('active', open);
+                memoryToolsToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+
+            function normalizeMemoryPacks(packs = []) {
+                const list = Array.isArray(packs) ? packs : [];
+                const normalized = list.map((pack, index) => ({
+                    id: String(pack?.id || `memory_${Date.now()}_${index}`),
+                    name: String(pack?.name || `Pack ${index + 1}`).trim() || `Pack ${index + 1}`,
+                    raw: normalizeImportedMemory(pack?.raw || ''),
+                    importedAt: String(pack?.importedAt || '')
+                }));
+                if (!normalized.length) {
+                    normalized.push({
+                        id: 'memory_primary',
+                        name: 'Primary',
+                        raw: normalizeImportedMemory(state.memoryRaw || ''),
+                        importedAt: String(state.memoryImportedAt || '')
+                    });
+                }
+                return normalized;
+            }
+
+            function getActiveMemoryPack() {
+                return (state.memoryPacks || []).find(pack => pack.id === state.activeMemoryPackId) || state.memoryPacks?.[0] || null;
+            }
+
+            function syncActiveMemoryPackState() {
+                const active = getActiveMemoryPack();
+                if (!active) {
+                    state.memoryRaw = '';
+                    state.memoryImportedAt = '';
+                    return;
+                }
+                state.activeMemoryPackId = active.id;
+                state.memoryRaw = normalizeImportedMemory(active.raw || '');
+                state.memoryImportedAt = active.importedAt || '';
+            }
+
+            function persistMemoryPacksStore() {
+                localStorage.setItem('vt_memory_packs', JSON.stringify(state.memoryPacks || []));
+                localStorage.setItem('vt_memory_pack_active', state.activeMemoryPackId || '');
+                localStorage.setItem('vt_memory_raw', state.memoryRaw || '');
+                localStorage.setItem('vt_memory_imported_at', state.memoryImportedAt || '');
+                localStorage.setItem('vt_output_style', state.outputStyle || 'default');
+            }
+
+            function ensureMemoryPackStore() {
+                state.memoryPacks = normalizeMemoryPacks(state.memoryPacks);
+                if (!state.activeMemoryPackId || !state.memoryPacks.some(pack => pack.id === state.activeMemoryPackId)) {
+                    state.activeMemoryPackId = state.memoryPacks[0]?.id || 'memory_primary';
+                }
+                syncActiveMemoryPackState();
+                persistMemoryPacksStore();
+            }
+
+            function setActiveMemoryPack(packId) {
+                if (!packId) return;
+                if (!state.memoryPacks.some(pack => pack.id === packId)) return;
+                state.activeMemoryPackId = packId;
+                syncActiveMemoryPackState();
+                persistMemoryPacksStore();
+                renderMemoryUi();
+                renderAssistantMessages();
+                scheduleWorkspaceSave();
+            }
+
+            function createMemoryPack(name) {
+                const cleanName = String(name || '').trim();
+                if (!cleanName) {
+                    toast('Enter a memory pack name first', 'warning');
+                    return;
+                }
+                const id = `memory_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                state.memoryPacks.push({ id, name: cleanName, raw: '', importedAt: '' });
+                state.activeMemoryPackId = id;
+                syncActiveMemoryPackState();
+                persistMemoryPacksStore();
+                renderMemoryUi();
+                renderAssistantMessages();
+                scheduleWorkspaceSave();
+                if (memoryPackNameInput) memoryPackNameInput.value = '';
+                toast('Memory pack created', 'success');
+            }
+
+            function deleteActiveMemoryPack() {
+                const active = getActiveMemoryPack();
+                if (!active) return;
+                if ((state.memoryPacks || []).length <= 1) {
+                    active.raw = '';
+                    active.importedAt = '';
+                    syncActiveMemoryPackState();
+                    persistMemoryPacksStore();
+                    renderMemoryUi();
+                    renderAssistantMessages();
+                    scheduleWorkspaceSave();
+                    toast('Primary memory pack cleared', 'info');
+                    return;
+                }
+                state.memoryPacks = (state.memoryPacks || []).filter(pack => pack.id !== active.id);
+                state.activeMemoryPackId = state.memoryPacks[0]?.id || '';
+                syncActiveMemoryPackState();
+                persistMemoryPacksStore();
+                renderMemoryUi();
+                renderAssistantMessages();
+                scheduleWorkspaceSave();
+                toast('Memory pack deleted', 'info');
+            }
+
+            function getOutputStyleInstruction(style = state.outputStyle) {
+                const map = {
+                    default: 'Use a balanced, practical style that is clear and directly useful.',
+                    concise: 'Keep the response compact, sharp, and low-fluff. Prioritize signal over explanation.',
+                    executive: 'Write for a busy executive. Lead with decisions, risks, and impact. Keep it polished.',
+                    technical: 'Write for an engineer. Be precise, structured, and implementation-aware.',
+                    founder: 'Write like a strong founder/operator brief. Focus on priorities, tradeoffs, leverage, and next moves.',
+                    'client-ready': 'Write as polished client-facing output with clarity, professionalism, and clean wording.',
+                    'meeting-notes': 'Write as clean meeting notes with clear sections, outcomes, owners, and next steps.'
+                };
+                return map[style] || map.default;
+            }
+
+            function normalizeImportedMemory(text = '') {
+                let value = String(text || '').replace(/\r\n/g, '\n').trim();
+                value = value.replace(/^```[a-zA-Z0-9_-]*\s*/m, '').replace(/\s*```$/m, '').trim();
+                return value;
+            }
+
+            function formatRelativeMemoryTime(iso = '') {
+                if (!iso) return 'unknown time';
+                const ts = Date.parse(iso);
+                if (!Number.isFinite(ts)) return 'unknown time';
+                const diffMin = Math.max(0, Math.floor((Date.now() - ts) / 60000));
+                if (diffMin < 1) return 'just now';
+                if (diffMin < 60) return `${diffMin}m ago`;
+                const diffHr = Math.floor(diffMin / 60);
+                if (diffHr < 24) return `${diffHr}h ago`;
+                const diffDay = Math.floor(diffHr / 24);
+                return `${diffDay}d ago`;
+            }
+
+            function getImportedMemoryContext({ maxChars = 9000 } = {}) {
+                const raw = normalizeImportedMemory(state.memoryRaw || '');
+                if (!raw) return '';
+                const compact = raw.length > maxChars
+                    ? `${raw.slice(0, maxChars).trim()}\n\n[Imported memory truncated for token control]`
+                    : raw;
+                return [
+                    'Imported user memory and long-term context:',
+                    'Use this for preferences, ongoing projects, terminology, and stable background context.',
+                    'If transcript or runtime state conflicts with memory, trust the transcript/runtime state first.',
+                    '',
+                    compact
+                ].join('\n');
+            }
+
+            function getTaskMemoryGuidance(taskName = '') {
+                if (taskName === 'ai-clean') {
+                    return 'Use memory lightly for terminology, proper nouns, and writing preferences. Do not inject unrelated facts.';
+                }
+                if (taskName === 'summary') {
+                    return 'Use memory strongly to prioritize what matters most to this user, their projects, and their preferred output style.';
+                }
+                if (taskName === 'action-items') {
+                    return 'Use memory to interpret project context and likely priorities, but only derive action items from what the transcript supports.';
+                }
+                if (String(taskName || '').startsWith('prompt-pack')) {
+                    return 'Use memory strongly to tailor the prompt structure, requirements, and context to this user and their ongoing work.';
+                }
+                return 'Use memory when it improves relevance, but do not override transcript facts.';
+            }
+
+            function renderMemoryUi() {
+                if (memoryPromptExport) memoryPromptExport.value = MEMORY_IMPORT_PROMPT;
+                if (memoryInput && document.activeElement !== memoryInput) memoryInput.value = state.memoryRaw || '';
+                const imported = normalizeImportedMemory(state.memoryRaw || '');
+                if (memoryStatusChip) {
+                    memoryStatusChip.textContent = imported
+                        ? `Memory loaded • ${formatRelativeMemoryTime(state.memoryImportedAt)}`
+                        : 'No memory loaded';
+                }
+                if (memoryMeta) {
+                    memoryMeta.textContent = imported
+                        ? `Imported ${imported.length.toLocaleString()} characters. AI Output and Verba Assistant will use this memory automatically. Last updated ${formatRelativeMemoryTime(state.memoryImportedAt)}.`
+                        : 'No imported memory yet. Once saved, it will ground summaries, action items, prompt packs, AI clean, and assistant replies.';
+                }
+            }
+
+            function persistMemoryStore() {
+                localStorage.setItem('vt_memory_raw', state.memoryRaw || '');
+                localStorage.setItem('vt_memory_imported_at', state.memoryImportedAt || '');
+            }
+
+            function setImportedMemory(rawText, { announce = true } = {}) {
+                const normalized = normalizeImportedMemory(rawText);
+                state.memoryRaw = normalized;
+                state.memoryImportedAt = normalized ? new Date().toISOString() : '';
+                persistMemoryStore();
+                renderMemoryUi();
+                renderAssistantMessages();
+                scheduleWorkspaceSave();
+                if (announce) {
+                    toast(normalized ? 'Memory imported' : 'Memory cleared', normalized ? 'success' : 'info');
+                }
             }
 
             function getCaptureCapabilitySummary() {
@@ -1042,6 +1385,9 @@ qdrant => Qdrant"></textarea>
             // SPEECH RECOGNITION (Live Mode)
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             let recognition = null;
+            let assistantRecognition = null;
+            let assistantDictationBase = '';
+            let assistantDictationFinal = '';
             if (SR) {
                 recognition = new SR();
                 recognition.continuous = true;
@@ -1111,6 +1457,45 @@ qdrant => Qdrant"></textarea>
                     }
                     if (state.isRecording && state.mode === 'realtime' && !state.restartTimeout) {
                         scheduleRestart(50);
+                    }
+                };
+
+                assistantRecognition = new SR();
+                assistantRecognition.continuous = true;
+                assistantRecognition.interimResults = true;
+                assistantRecognition.maxAlternatives = 1;
+                assistantRecognition.lang = 'en-US';
+
+                assistantRecognition.onresult = (e) => {
+                    let interim = '';
+                    for (let i = e.resultIndex; i < e.results.length; i++) {
+                        const result = e.results[i];
+                        const text = String(result?.[0]?.transcript || '').trim();
+                        if (!text) continue;
+                        if (result.isFinal) {
+                            assistantDictationFinal = assistantDictationFinal
+                                ? `${assistantDictationFinal} ${text}`
+                                : text;
+                        } else {
+                            interim = interim ? `${interim} ${text}` : text;
+                        }
+                    }
+                    const next = [assistantDictationBase, assistantDictationFinal, interim].filter(Boolean).join(' ').trim();
+                    if (assistantInput) assistantInput.value = next;
+                    setAssistantDraft(next);
+                };
+
+                assistantRecognition.onend = () => {
+                    state.assistant.isListening = false;
+                    renderAssistantMessages();
+                };
+
+                assistantRecognition.onerror = (e) => {
+                    console.warn('Assistant speech recognition error:', e.error);
+                    state.assistant.isListening = false;
+                    renderAssistantMessages();
+                    if (e.error !== 'aborted' && e.error !== 'no-speech') {
+                        toast('Assistant voice input unavailable', 'warning');
                     }
                 };
             }
@@ -2857,6 +3242,11 @@ qdrant => Qdrant"></textarea>
                     detectedLanguage: state.detectedLanguage,
                     speakerMode: state.speakerMode,
                     glossaryRaw: state.glossaryRaw,
+                    memoryRaw: state.memoryRaw,
+                    memoryImportedAt: state.memoryImportedAt,
+                    memoryPacks: state.memoryPacks,
+                    activeMemoryPackId: state.activeMemoryPackId,
+                    outputStyle: state.outputStyle,
                     diagnostics: state.diagnostics,
                     fileHash: state.fileHash,
                     audioDurationSec: state.audioDurationSec,
@@ -2889,9 +3279,17 @@ qdrant => Qdrant"></textarea>
                 state.aiOutput = aiOutput.value;
                 state.segments = Array.isArray(payload.segments) ? payload.segments.map((seg, idx) => normalizeSegment(seg, idx)) : [];
                 state.detectedLanguage = payload.detectedLanguage || '';
+                state.memoryRaw = normalizeImportedMemory(payload.memoryRaw || state.memoryRaw || '');
+                state.memoryImportedAt = payload.memoryImportedAt || state.memoryImportedAt || '';
+                state.memoryPacks = normalizeMemoryPacks(payload.memoryPacks || state.memoryPacks || []);
+                state.activeMemoryPackId = payload.activeMemoryPackId || state.activeMemoryPackId || state.memoryPacks[0]?.id || '';
+                state.outputStyle = payload.outputStyle || state.outputStyle || 'default';
+                syncActiveMemoryPackState();
                 state.diagnostics = payload.diagnostics || state.diagnostics || {};
                 state.fileHash = payload.fileHash || '';
                 state.audioDurationSec = Number(payload.audioDurationSec || 0);
+                persistMemoryStore();
+                renderMemoryUi();
                 setMode(state.mode || 'realtime');
                 renderSegments();
                 if (!state.segments.length) updateStats();
@@ -2988,6 +3386,8 @@ qdrant => Qdrant"></textarea>
                 const keys = getProviderKeys();
                 if (!keys.length) { toast('API key required', 'warning'); return; }
                 const model = getActiveChatModel();
+                const importedMemory = getImportedMemoryContext({ maxChars: 9000 });
+                const styleInstruction = getOutputStyleInstruction();
                 if (button) button.disabled = true;
                 state.aiBusy = true;
                 try {
@@ -3000,6 +3400,11 @@ qdrant => Qdrant"></textarea>
                             temperature: 0.2,
                             messages: [
                                 { role: 'system', content: task.system },
+                                { role: 'system', content: `Current output style: ${styleInstruction}` },
+                                ...(importedMemory ? [{
+                                    role: 'system',
+                                    content: `${getTaskMemoryGuidance(task?.name)}\n\n${importedMemory}`
+                                }] : []),
                                 { role: 'user', content: `${task.user}\n\nTranscript:\n${text}` }
                             ]
                         }),
@@ -3017,6 +3422,131 @@ qdrant => Qdrant"></textarea>
                 } finally {
                     state.aiBusy = false;
                     if (button) button.disabled = false;
+                }
+            }
+
+            async function askTranscriptQuestion(question, { button } = {}) {
+                const transcriptText = String(transcript?.value || '').trim();
+                const prompt = String(question || '').trim();
+                if (!transcriptText) { toast('Transcript is empty', 'warning'); return; }
+                if (!prompt) { toast('Ask a transcript question first', 'warning'); return; }
+                if (!getProviderKeys().length) { toast('API key required', 'warning'); return; }
+                const model = getActiveChatModel();
+                const importedMemory = getImportedMemoryContext({ maxChars: 9000 });
+                const activePack = getActiveMemoryPack();
+                if (button) button.disabled = true;
+                state.aiBusy = true;
+                try {
+                    const result = await providerRequest({
+                        url: getChatEndpoint(),
+                        responseType: 'json',
+                        purpose: 'ask-transcript',
+                        buildBody: () => JSON.stringify({
+                            model,
+                            temperature: 0.2,
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: [
+                                        'You answer questions about a transcript.',
+                                        'Use the transcript as the source of current truth.',
+                                        'Use imported memory only as background context for user preferences, terminology, and ongoing projects.',
+                                        `Current output style: ${getOutputStyleInstruction()}`
+                                    ].join('\n')
+                                },
+                                ...(importedMemory ? [{
+                                    role: 'system',
+                                    content: `Active memory pack: ${activePack?.name || 'Primary'}\n\n${importedMemory}`
+                                }] : []),
+                                {
+                                    role: 'user',
+                                    content: `Question:\n${prompt}\n\nTranscript:\n${transcriptText}`
+                                }
+                            ]
+                        }),
+                        maxRetries: 2
+                    });
+                    const out = normalizeAssistantText(result?.choices?.[0]?.message?.content || '');
+                    aiOutput.value = out.trim();
+                    state.aiOutput = aiOutput.value;
+                    sessionStorage.setItem('vt_ai_output', state.aiOutput);
+                    updateDiagnostics({ chatModel: model }, 'ask-transcript complete');
+                    scheduleWorkspaceSave();
+                    toast('Transcript answer ready', 'success');
+                } catch (err) {
+                    toast(err.message || 'Transcript question failed', 'error');
+                } finally {
+                    state.aiBusy = false;
+                    if (button) button.disabled = false;
+                }
+            }
+
+            function getImportedMemoryContext({ maxChars = 9000 } = {}) {
+                ensureMemoryPackStore();
+                const raw = normalizeImportedMemory(state.memoryRaw || '');
+                if (!raw) return '';
+                const compact = raw.length > maxChars
+                    ? `${raw.slice(0, maxChars).trim()}\n\n[Imported memory truncated for token control]`
+                    : raw;
+                const activePack = getActiveMemoryPack();
+                return [
+                    `Imported user memory from pack: ${activePack?.name || 'Primary'}`,
+                    'Use this for preferences, ongoing projects, terminology, and stable background context.',
+                    'If transcript or runtime state conflicts with memory, trust the transcript/runtime state first.',
+                    '',
+                    compact
+                ].join('\n');
+            }
+
+            function renderMemoryUi() {
+                ensureMemoryPackStore();
+                if (memoryPromptExport) memoryPromptExport.value = MEMORY_IMPORT_PROMPT;
+                if (memoryPackSelect) {
+                    memoryPackSelect.innerHTML = (state.memoryPacks || []).map(pack => `<option value="${escapeHtml(pack.id)}">${escapeHtml(pack.name)}</option>`).join('');
+                    memoryPackSelect.value = state.activeMemoryPackId || state.memoryPacks?.[0]?.id || '';
+                }
+                if (memoryInput && document.activeElement !== memoryInput) memoryInput.value = state.memoryRaw || '';
+                if (outputStyleSelect) outputStyleSelect.value = state.outputStyle || 'default';
+                const imported = normalizeImportedMemory(state.memoryRaw || '');
+                const activePack = getActiveMemoryPack();
+                if (memoryStatusChip) {
+                    memoryStatusChip.textContent = imported
+                        ? `${activePack?.name || 'Memory'} loaded - ${formatRelativeMemoryTime(state.memoryImportedAt)}`
+                        : 'No memory loaded';
+                }
+                if (memoryPackMeta) {
+                    memoryPackMeta.textContent = `Active pack: ${activePack?.name || 'Primary'}. Use separate packs for Client A, Startup, Personal, Research, or any other workflow.`;
+                }
+                if (memoryMeta) {
+                    memoryMeta.textContent = imported
+                        ? `Imported ${imported.length.toLocaleString()} characters into ${activePack?.name || 'this pack'}. AI Output and Verba Assistant will use it automatically. Last updated ${formatRelativeMemoryTime(state.memoryImportedAt)}.`
+                        : 'No imported memory yet. Once saved, it will ground summaries, action items, prompt packs, AI clean, and assistant replies.';
+                }
+                if (aiContextNote) {
+                    const styleLabel = outputStyleSelect?.selectedOptions?.[0]?.textContent || 'Default';
+                    aiContextNote.textContent = `AI Output uses the ${activePack?.name || 'Primary'} memory pack and ${styleLabel} style automatically.`;
+                }
+            }
+
+            function persistMemoryStore() {
+                persistMemoryPacksStore();
+            }
+
+            function setImportedMemory(rawText, { announce = true } = {}) {
+                const normalized = normalizeImportedMemory(rawText);
+                ensureMemoryPackStore();
+                const active = getActiveMemoryPack();
+                if (active) {
+                    active.raw = normalized;
+                    active.importedAt = normalized ? new Date().toISOString() : '';
+                }
+                syncActiveMemoryPackState();
+                persistMemoryStore();
+                renderMemoryUi();
+                renderAssistantMessages();
+                scheduleWorkspaceSave();
+                if (announce) {
+                    toast(normalized ? 'Memory imported' : 'Memory cleared', normalized ? 'success' : 'info');
                 }
             }
 
@@ -3068,7 +3598,8 @@ Key controls and tools:
 - Auto-Copy triggers after silence when enabled.
 - Presets change recommended behavior.
 - Speaker labels affect transcript rebuild and subtitle-style exports.
-- Transcript Studio includes glossary apply, local cleanup, redaction, workspace save/export/import, and cache clear.
+- Imported Memory lets the user paste exported long-term context that AI Output and Verba Assistant can reuse.
+- Advanced transcript tools include glossary apply, local cleanup, redaction, workspace save/export/import, and cache clear.
 - AI Output includes AI Clean, Summary, Action Items, and Prompt Pack.
 - Exports include TXT, SRT, VTT, JSON, Markdown, CSV, and Workspace JSON.
 - Keyboard shortcuts include Space, Ctrl+C, Ctrl+D, Ctrl+O, Ctrl+Enter, Ctrl+Z, Ctrl+Delete, Ctrl+Shift+Q, and Ctrl+Shift+P.
@@ -3092,6 +3623,9 @@ Preferred answer style:
                     `speaker_labels=${state.speakerMode ? 'on' : 'off'}`,
                     `preset=${state.preset}`,
                     `autosave=${state.autosaveEnabled ? 'on' : 'off'}`,
+                    `memory=${state.memoryRaw ? 'loaded' : 'none'}`,
+                    `memory_pack=${getActiveMemoryPack()?.name || 'Primary'}`,
+                    `output_style=${state.outputStyle || 'default'}`,
                     `recording=${state.isRecording ? 'active' : 'idle'}`,
                     `normalize=${$('optNormalize')?.checked ? 'on' : 'off'}`,
                     `translate_to_english=${$('optTranslate')?.checked ? 'on' : 'off'}`,
@@ -3348,11 +3882,23 @@ Preferred answer style:
                 const unread = Number(state.assistant.unread || 0);
                 assistantUnread.textContent = unread > 9 ? '9+' : String(unread);
                 assistantUnread.classList.toggle('visible', unread > 0);
-                assistantRuntimeMeta.textContent = `${state.mode} mode | ${state.apiProvider.toUpperCase()} ready | general + workspace help`;
+                assistantRuntimeMeta.textContent = `${state.mode} mode | ${state.apiProvider.toUpperCase()} ready | ${getActiveMemoryPack()?.name || 'Primary'} memory | ${state.outputStyle || 'default'} style`;
                 assistantModelMeta.textContent = `${state.apiProvider.toUpperCase()} | ${getActiveChatModel()}`;
                 syncChatModelSelectors();
                 renderAssistantHistoryList();
                 assistantSend.disabled = !!state.assistant.isSending;
+                if (assistantMicBtn) {
+                    const supported = !!assistantRecognition;
+                    assistantMicBtn.disabled = !supported || !!state.assistant.isSending;
+                    assistantMicBtn.classList.toggle('listening', !!state.assistant.isListening);
+                    assistantMicBtn.setAttribute('aria-pressed', state.assistant.isListening ? 'true' : 'false');
+                    assistantMicBtn.setAttribute('aria-label', state.assistant.isListening ? 'Stop voice input' : 'Start voice input');
+                    assistantMicBtn.title = !supported
+                        ? 'Voice input is not supported in this browser'
+                        : state.assistant.isListening
+                            ? 'Stop voice input'
+                            : 'Voice input (English)';
+                }
                 assistantLauncher.classList.toggle('open', !!state.assistant.isOpen);
                 assistantShell.classList.toggle('open', !!state.assistant.isOpen);
                 assistantShell.classList.toggle('maximized', !!state.assistant.maximized);
@@ -3366,6 +3912,9 @@ Preferred answer style:
             function setAssistantOpen(isOpen) {
                 state.assistant.isOpen = !!isOpen;
                 state.assistant.minimized = !isOpen;
+                if (!isOpen && state.assistant.isListening && assistantRecognition) {
+                    try { assistantRecognition.stop(); } catch (e) { }
+                }
                 if (isOpen) {
                     state.assistant.unread = 0;
                     setTimeout(() => assistantInput.focus(), 60);
@@ -3398,18 +3947,58 @@ Preferred answer style:
                     .filter(msg => msg && (msg.role === 'user' || msg.role === 'assistant'))
                     .slice(-8)
                     .map(msg => ({ role: msg.role, content: String(msg.content || '') }));
+                const importedMemory = getImportedMemoryContext({ maxChars: 7000 });
                 return [
                     {
                         role: 'system',
-                        content: `You are Verba Assistant.\n${ASSISTANT_KB}\n\nCurrent runtime state:\n${getAssistantRuntimeSummary()}`
+                        content: `You are Verba Assistant.\n${ASSISTANT_KB}\n\nCurrent runtime state:\n${getAssistantRuntimeSummary()}\n\nPreferred output style:\n${getOutputStyleInstruction()}`
                     },
+                    ...(importedMemory ? [{
+                        role: 'system',
+                        content: `Use the imported user memory below as long-term context for preferences, projects, terminology, and stable background facts. Do not let it override transcript text or current runtime state when they conflict.\n\n${importedMemory}`
+                    }] : []),
                     ...thread
                 ];
+            }
+
+            function startAssistantVoiceInput() {
+                if (!assistantRecognition) {
+                    toast('Voice input is not supported here', 'warning');
+                    return;
+                }
+                if (state.isRecording) {
+                    toast('Stop the main recording first', 'warning');
+                    return;
+                }
+                if (state.assistant.isListening) return;
+                assistantDictationBase = String(assistantInput?.value || '').trim();
+                assistantDictationFinal = '';
+                assistantRecognition.lang = 'en-US';
+                try {
+                    assistantRecognition.start();
+                    state.assistant.isListening = true;
+                    renderAssistantMessages();
+                    if (assistantInput) assistantInput.focus();
+                } catch (e) {
+                    console.warn('Assistant voice input start failed:', e);
+                    state.assistant.isListening = false;
+                    renderAssistantMessages();
+                    toast('Assistant voice input unavailable', 'warning');
+                }
+            }
+
+            function stopAssistantVoiceInput() {
+                state.assistant.isListening = false;
+                if (assistantRecognition) {
+                    try { assistantRecognition.stop(); } catch (e) { }
+                }
+                renderAssistantMessages();
             }
 
             async function askAssistant(question) {
                 const text = String(question || '').trim();
                 if (!text) return;
+                if (state.assistant.isListening) stopAssistantVoiceInput();
                 if (!getProviderKeys().length) {
                     pushAssistantMessage('assistant', 'API key required. Open API Configuration, save a Groq or OpenAI key, then ask again.');
                     toast('Assistant needs an API key', 'warning');
@@ -3524,6 +4113,13 @@ Preferred answer style:
                 setAssistantDraft('');
                 assistantInput.value = '';
                 askAssistant(value);
+            });
+            assistantMicBtn?.addEventListener('click', () => {
+                if (state.assistant.isListening) {
+                    stopAssistantVoiceInput();
+                    return;
+                }
+                startAssistantVoiceInput();
             });
 
             assistantHistoryBtn?.addEventListener('click', () => {
@@ -3710,6 +4306,7 @@ Preferred answer style:
             });
 
             // Load saved values
+            ensureMemoryPackStore();
             apiProvider.value = state.apiProvider;
             audioModelInput.value = state.audioModel || defaultAudioModel(state.apiProvider);
             chatModelInput.value = getActiveChatModel();
@@ -3721,6 +4318,9 @@ Preferred answer style:
             apiKeyVault.value = (state.providerKeys[state.apiProvider] || []).join('\n');
             updateVaultMeta();
             if (state.aiOutput) aiOutput.value = state.aiOutput;
+            if (outputStyleSelect) outputStyleSelect.value = state.outputStyle || 'default';
+            renderMemoryUi();
+            setMemoryToolsOpen(false);
             if (state.apiKey) {
                 apiKeyInput.value = state.apiKey;
                 apiStatusDot.className = 'api-status-dot connected';
@@ -3817,6 +4417,77 @@ Preferred answer style:
                     return;
                 }
                 setChatModel(assistantModelSelect.value);
+            });
+
+            memoryInput?.addEventListener('input', () => {
+                const draft = normalizeImportedMemory(memoryInput.value || '');
+                if (memoryMeta) {
+                    memoryMeta.textContent = draft
+                        ? `Ready to import ${draft.length.toLocaleString()} characters. Once saved, AI Output and Verba Assistant will start using it.`
+                        : 'No imported memory yet. Once saved, it will ground summaries, action items, prompt packs, AI clean, and assistant replies.';
+                }
+            });
+
+            memoryPackSelect?.addEventListener('change', () => {
+                setActiveMemoryPack(memoryPackSelect.value);
+            });
+
+            createMemoryPackBtn?.addEventListener('click', () => {
+                createMemoryPack(memoryPackNameInput?.value || '');
+            });
+
+            deleteMemoryPackBtn?.addEventListener('click', () => {
+                deleteActiveMemoryPack();
+            });
+
+            copyMemoryPromptBtn?.addEventListener('click', () => {
+                copyToClipboard(MEMORY_IMPORT_PROMPT, () => toast('Memory prompt copied', 'success'));
+            });
+
+            importMemoryBtn?.addEventListener('click', () => {
+                const raw = memoryInput?.value || '';
+                const normalized = normalizeImportedMemory(raw);
+                if (!normalized) {
+                    toast('Paste exported memory before importing', 'warning');
+                    return;
+                }
+                setImportedMemory(normalized);
+            });
+
+            clearMemoryBtn?.addEventListener('click', () => {
+                if (!state.memoryRaw && !(memoryInput?.value || '').trim()) {
+                    toast('No memory to clear', 'info');
+                    return;
+                }
+                if (memoryInput) memoryInput.value = '';
+                setImportedMemory('', { announce: true });
+            });
+
+            memoryToolsToggle?.addEventListener('click', () => {
+                const open = memoryToolsToggle.getAttribute('aria-expanded') === 'true';
+                setMemoryToolsOpen(!open);
+            });
+
+            outputStyleSelect?.addEventListener('change', () => {
+                state.outputStyle = outputStyleSelect.value || 'default';
+                localStorage.setItem('vt_output_style', state.outputStyle);
+                renderMemoryUi();
+                renderAssistantMessages();
+                scheduleWorkspaceSave();
+                toast(`Output style: ${outputStyleSelect.selectedOptions?.[0]?.textContent || 'Default'}`, 'info');
+            });
+
+            askTranscriptInput?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    if (state.aiBusy) return;
+                    askTranscriptQuestion(askTranscriptInput.value, { button: askTranscriptBtn });
+                }
+            });
+
+            askTranscriptBtn?.addEventListener('click', () => {
+                if (state.aiBusy) return;
+                askTranscriptQuestion(askTranscriptInput?.value || '', { button: askTranscriptBtn });
             });
 
             glossaryInput.addEventListener('input', () => {
@@ -4440,6 +5111,11 @@ Preferred answer style:
                     detectedLanguage: state.detectedLanguage,
                     speakerMode: state.speakerMode,
                     glossaryRaw: state.glossaryRaw,
+                    memoryRaw: state.memoryRaw,
+                    memoryImportedAt: state.memoryImportedAt,
+                    memoryPacks: state.memoryPacks,
+                    activeMemoryPackId: state.activeMemoryPackId,
+                    outputStyle: state.outputStyle,
                     diagnostics: state.diagnostics,
                     fileHash: state.fileHash,
                     audioDurationSec: state.audioDurationSec,
@@ -4467,9 +5143,17 @@ Preferred answer style:
                 state.aiOutput = aiOutput.value;
                 state.segments = Array.isArray(payload.segments) ? payload.segments.map((seg, idx) => normalizeSegment(seg, idx)) : [];
                 state.detectedLanguage = payload.detectedLanguage || '';
+                state.memoryRaw = normalizeImportedMemory(payload.memoryRaw || state.memoryRaw || '');
+                state.memoryImportedAt = payload.memoryImportedAt || state.memoryImportedAt || '';
+                state.memoryPacks = normalizeMemoryPacks(payload.memoryPacks || state.memoryPacks || []);
+                state.activeMemoryPackId = payload.activeMemoryPackId || state.activeMemoryPackId || state.memoryPacks[0]?.id || '';
+                state.outputStyle = payload.outputStyle || state.outputStyle || 'default';
+                syncActiveMemoryPackState();
                 state.diagnostics = payload.diagnostics || state.diagnostics || {};
                 state.fileHash = payload.fileHash || '';
                 state.audioDurationSec = Number(payload.audioDurationSec || 0);
+                persistMemoryStore();
+                renderMemoryUi();
                 renderCaptureUi();
                 setMode(state.mode || 'realtime', { silent: true });
                 if (captureSourceSelect) captureSourceSelect.value = state.captureSource;
@@ -4590,6 +5274,7 @@ Preferred answer style:
             speakerModeToggle.classList.toggle('on', state.speakerMode);
             autosaveToggle.classList.toggle('on', state.autosaveEnabled);
             setAiOutputOpen(!isTouchPrimary());
+            renderMemoryUi();
             updateStats();
             updateTranscribeBtn();
             updateVaultMeta();
