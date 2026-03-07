@@ -258,15 +258,21 @@
               <button class="micro-btn" id="clearAiOutputBtn">Clear</button>
             </div>
           </div>
-          <div class="inline-actions" style="margin-bottom:10px;">
-            <button class="pill-btn" id="cleanAiBtn">AI Clean</button>
-            <button class="pill-btn" id="summaryBtn">Summary</button>
-            <button class="pill-btn" id="actionItemsBtn">Action Items</button>
-            <button class="pill-btn" id="promptPackBtn">Prompt Pack</button>
-          </div>
-          <div class="output-stack">
-            <textarea id="aiOutput" class="ai-output" placeholder="AI notes, cleaned transcript, summaries, or paste-ready prompts will appear here."></textarea>
-            <div class="mini-note">Recommended on Groq: openai/gpt-oss-120b. Use openai/gpt-oss-20b when you want a faster fallback.</div>
+          <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="true" aria-controls="aiOutputPanel">
+            <span>AI output tools</span>
+            <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="ai-output-panel" id="aiOutputPanel">
+            <div class="inline-actions" style="margin-bottom:10px;">
+              <button class="pill-btn" id="cleanAiBtn">AI Clean</button>
+              <button class="pill-btn" id="summaryBtn">Summary</button>
+              <button class="pill-btn" id="actionItemsBtn">Action Items</button>
+              <button class="pill-btn" id="promptPackBtn">Prompt Pack</button>
+            </div>
+            <div class="output-stack">
+              <textarea id="aiOutput" class="ai-output" placeholder="AI notes, cleaned transcript, summaries, or paste-ready prompts will appear here."></textarea>
+              <div class="mini-note">Recommended on Groq: openai/gpt-oss-120b. Use openai/gpt-oss-20b when you want a faster fallback.</div>
+            </div>
           </div>
         </div>
       </aside>
@@ -707,6 +713,8 @@ qdrant => Qdrant"></textarea>
             const captureHelpCopy = $('captureHelpCopy');
             const shortcutsToggle = $('shortcutsToggle');
             const shortcutsPanel = $('shortcutsPanel');
+            const aiOutputToggle = $('aiOutputToggle');
+            const aiOutputPanel = $('aiOutputPanel');
             const wordPill = $('wordPill');
             const charPill = $('charPill');
             const segCount = $('segCount');
@@ -893,6 +901,13 @@ qdrant => Qdrant"></textarea>
                 if (shortcutsPanel) shortcutsPanel.hidden = !open;
                 shortcutsToggle?.classList.toggle('active', open);
                 shortcutsToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+
+            function setAiOutputOpen(nextOpen) {
+                const open = !!nextOpen;
+                if (aiOutputPanel) aiOutputPanel.hidden = !open;
+                aiOutputToggle?.classList.toggle('active', open);
+                aiOutputToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
             }
 
             function getCaptureCapabilitySummary() {
@@ -4099,6 +4114,11 @@ Preferred answer style:
                 setShortcutsOpen(!open);
             });
 
+            aiOutputToggle?.addEventListener('click', () => {
+                const open = aiOutputToggle.getAttribute('aria-expanded') === 'true';
+                setAiOutputOpen(!open);
+            });
+
             function updateDiagnostics(patch = {}, logLine = '') {
                 state.diagnostics = {
                     ...(state.diagnostics || {}),
@@ -4567,6 +4587,7 @@ Preferred answer style:
             autoCopyBtn.classList.toggle('on', state.autoCopyEnabled);
             speakerModeToggle.classList.toggle('on', state.speakerMode);
             autosaveToggle.classList.toggle('on', state.autosaveEnabled);
+            setAiOutputOpen(!isTouchPrimary());
             updateStats();
             updateTranscribeBtn();
             updateVaultMeta();

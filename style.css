@@ -4288,6 +4288,22 @@
             align-items: flex-start;
         }
 
+        .workspace-left-rail .utility-card-ai .ai-output-toggle {
+            width: 100%;
+            justify-content: space-between;
+            margin: 8px 0 0;
+        }
+
+        .workspace-left-rail .utility-card-ai .ai-output-panel {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .workspace-left-rail .utility-card-ai .ai-output-panel[hidden] {
+            display: none !important;
+        }
+
         .workspace-left-rail .utility-card-ai .ai-output {
             min-height: 240px;
         }
@@ -4431,15 +4447,59 @@
 
             .page {
                 max-width: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                padding: 18px 0 20px;
+                margin-bottom: 20px;
+                gap: 14px;
+                align-items: flex-start;
+            }
+
+            .header-meta {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .api-panel {
+                order: 2;
+                margin-bottom: 14px;
+            }
+
+            .controls {
+                order: 3;
+                position: sticky;
+                top: 10px;
+                z-index: 28;
+                margin-bottom: 14px;
+                padding: 10px 12px;
+                border: 1px solid rgba(148, 163, 184, 0.18);
+                border-radius: 22px;
+                background: rgba(255, 255, 255, 0.92);
+                box-shadow: var(--shadow-md);
+                backdrop-filter: blur(14px);
+            }
+
+            .controls .spacer {
+                display: none;
+            }
+
+            .workspace-banner {
+                order: 5;
+                margin-top: 0;
             }
 
             .workspace-shell {
+                order: 4;
                 grid-template-columns: 1fr;
                 grid-template-areas:
-                    'left'
                     'main'
-                    'right';
+                    'right'
+                    'left';
                 gap: 16px;
+                margin-top: 0;
             }
 
             .workspace-left-rail,
@@ -4450,16 +4510,99 @@
             .workspace-left-rail {
                 display: flex;
             }
+
+            .workspace-main {
+                gap: 14px;
+            }
+
+            .workspace-main > .rec-panel {
+                order: 1;
+            }
+
+            .workspace-main > .upload-panel {
+                order: 2;
+            }
+
+            .workspace-main > .transcript-panel {
+                order: 3;
+            }
+
+            .workspace-main > .studio-grid {
+                order: 4;
+            }
+
+            .workspace-main > .diagnostics-panel,
+            .workspace-main > .undo-indicator {
+                order: 5;
+            }
+
+            .utility-card-ai .ai-output {
+                min-height: 180px;
+            }
         }
 
         @media (max-width: 600px) {
             body {
-                padding: 0 12px calc(168px + env(safe-area-inset-bottom, 0));
+                padding: 0 12px calc(176px + env(safe-area-inset-bottom, 0));
             }
 
             .workspace-shell {
                 gap: 14px;
                 margin-top: 14px;
+            }
+
+            .header {
+                padding: 14px 0 16px;
+                margin-bottom: 16px;
+            }
+
+            .brand {
+                align-items: flex-start;
+            }
+
+            .brand-copy {
+                display: grid;
+                gap: 4px;
+            }
+
+            .brand-sub {
+                font-size: 12px;
+                line-height: 1.45;
+            }
+
+            .header-meta {
+                display: none;
+            }
+
+            .controls {
+                top: 8px;
+                gap: 10px;
+                padding: 10px;
+                border-radius: 20px;
+            }
+
+            .mode-toggle,
+            .lang-wrap,
+            .btn-toggle {
+                width: 100%;
+            }
+
+            .lang-wrap {
+                display: grid;
+                gap: 8px;
+            }
+
+            .lang-wrap select {
+                width: 100%;
+            }
+
+            .workspace-banner {
+                gap: 12px;
+                padding: 14px;
+            }
+
+            .workspace-banner .field {
+                min-width: 0;
             }
 
             .workspace-left-rail,
@@ -4476,14 +4619,25 @@
                 flex-direction: column;
             }
 
+            .rec-panel {
+                padding: 18px 14px 16px;
+                border-radius: 26px;
+            }
+
+            .rec-hero {
+                padding-top: 4px;
+            }
+
             .assistant-dock {
                 width: 100%;
+                justify-content: stretch;
             }
 
             .assistant-dock .btn-copy {
                 flex: 1 1 auto;
                 min-width: 0;
                 justify-content: center;
+                margin-bottom: 6px;
             }
 
             .assistant-dock .assistant-launcher {
