@@ -247,34 +247,6 @@
           </div>
         </div>
 
-        <div class="tool-panel utility-card-ai">
-          <div class="tool-header">
-            <div>
-              <div class="tool-title">AI Output</div>
-              <div class="tool-sub">Groq-first summaries, action items, and prompt packs using your configured provider and chat model.</div>
-            </div>
-            <div class="inline-actions">
-              <button class="micro-btn" id="copyAiOutputBtn">Copy</button>
-              <button class="micro-btn" id="clearAiOutputBtn">Clear</button>
-            </div>
-          </div>
-          <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="true" aria-controls="aiOutputPanel">
-            <span>AI output tools</span>
-            <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div class="ai-output-panel" id="aiOutputPanel">
-            <div class="inline-actions" style="margin-bottom:10px;">
-              <button class="pill-btn" id="cleanAiBtn">AI Clean</button>
-              <button class="pill-btn" id="summaryBtn">Summary</button>
-              <button class="pill-btn" id="actionItemsBtn">Action Items</button>
-              <button class="pill-btn" id="promptPackBtn">Prompt Pack</button>
-            </div>
-            <div class="output-stack">
-              <textarea id="aiOutput" class="ai-output" placeholder="AI notes, cleaned transcript, summaries, or paste-ready prompts will appear here."></textarea>
-              <div class="mini-note">Recommended on Groq: openai/gpt-oss-120b. Use openai/gpt-oss-20b when you want a faster fallback.</div>
-            </div>
-          </div>
-        </div>
       </aside>
 
       <div class="workspace-main">
@@ -351,7 +323,35 @@
           <div class="segments-view" id="segmentsView"></div>
         </div>
 
-        <div class="studio-grid studio-grid-single">
+        <div class="studio-grid studio-grid-main">
+          <div class="tool-panel utility-card-ai utility-card-ai-main">
+            <div class="tool-header">
+              <div>
+                <div class="tool-title">AI Output</div>
+                <div class="tool-sub">Groq-first summaries, action items, and prompt packs using your configured provider and chat model.</div>
+              </div>
+              <div class="inline-actions">
+                <button class="micro-btn" id="copyAiOutputBtn">Copy</button>
+                <button class="micro-btn" id="clearAiOutputBtn">Clear</button>
+              </div>
+            </div>
+            <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="true" aria-controls="aiOutputPanel">
+              <span>AI output tools</span>
+              <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="ai-output-panel" id="aiOutputPanel">
+              <div class="inline-actions" style="margin-bottom:10px;">
+                <button class="pill-btn" id="cleanAiBtn">AI Clean</button>
+                <button class="pill-btn" id="summaryBtn">Summary</button>
+                <button class="pill-btn" id="actionItemsBtn">Action Items</button>
+                <button class="pill-btn" id="promptPackBtn">Prompt Pack</button>
+              </div>
+              <div class="output-stack">
+                <textarea id="aiOutput" class="ai-output" placeholder="AI notes, cleaned transcript, summaries, or paste-ready prompts will appear here."></textarea>
+                <div class="mini-note">Recommended on Groq: openai/gpt-oss-120b. Use openai/gpt-oss-20b when you want a faster fallback.</div>
+              </div>
+            </div>
+          </div>
           <div class="tool-panel">
             <div class="tool-header">
               <div>
@@ -420,17 +420,13 @@ qdrant => Qdrant"></textarea>
           </div>
           <div class="summary-meta-grid">
             <div class="summary-meta-block">
-              <span class="summary-label">Detected language</span>
-              <span class="detected-lang-badge" id="detectedLangBadge" style="display:none"></span>
-            </div>
-            <div class="summary-meta-block">
-              <span class="summary-label">Segments</span>
-              <span class="summary-value" id="segCount">0 segments</span>
-            </div>
-            <div class="summary-meta-block">
               <span class="summary-label">Duration</span>
               <span class="summary-value" id="durStat">0:00 duration</span>
             </div>
+          </div>
+          <div class="runtime-hidden-metrics" aria-hidden="true">
+            <span class="detected-lang-badge" id="detectedLangBadge" style="display:none"></span>
+            <span class="summary-value" id="segCount">0 segments</span>
           </div>
         </div>
 

@@ -4282,35 +4282,36 @@
             display: none !important;
         }
 
-        .studio-grid-single {
-            grid-template-columns: 1fr;
+        .studio-grid-main {
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+            align-items: start;
         }
 
-        .workspace-left-rail .utility-card-ai {
+        .utility-card-ai-main {
             margin: 0;
         }
 
-        .workspace-left-rail .utility-card-ai .tool-header {
+        .utility-card-ai-main .tool-header {
             align-items: flex-start;
         }
 
-        .workspace-left-rail .utility-card-ai .ai-output-toggle {
+        .utility-card-ai-main .ai-output-toggle {
             width: 100%;
             justify-content: space-between;
             margin: 8px 0 0;
         }
 
-        .workspace-left-rail .utility-card-ai .ai-output-panel {
+        .utility-card-ai-main .ai-output-panel {
             display: grid;
             gap: 10px;
             margin-top: 14px;
         }
 
-        .workspace-left-rail .utility-card-ai .ai-output-panel[hidden] {
+        .utility-card-ai-main .ai-output-panel[hidden] {
             display: none !important;
         }
 
-        .workspace-left-rail .utility-card-ai .ai-output {
+        .utility-card-ai-main .ai-output {
             min-height: 240px;
         }
 
@@ -4358,8 +4359,8 @@
             color: var(--text2);
         }
 
-        .session-summary-card .detected-lang-badge {
-            justify-self: start;
+        .runtime-hidden-metrics {
+            display: none !important;
         }
 
         .utility-card-actions .action-bar {
@@ -4440,10 +4441,6 @@
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-
-            .workspace-left-rail .utility-card-ai {
-                grid-column: 1 / -1;
-            }
         }
 
         @media (max-width: 899px) {
@@ -4470,12 +4467,12 @@
             }
 
             .api-panel {
-                order: 2;
+                order: 5;
                 margin-bottom: 14px;
             }
 
             .controls {
-                order: 3;
+                order: 2;
                 position: sticky;
                 top: 10px;
                 z-index: 28;
@@ -4493,12 +4490,12 @@
             }
 
             .workspace-banner {
-                order: 5;
+                order: 4;
                 margin-top: 0;
             }
 
             .workspace-shell {
-                order: 4;
+                order: 3;
                 grid-template-columns: 1fr;
                 grid-template-areas:
                     'main'
@@ -4529,15 +4526,15 @@
             }
 
             .workspace-main > .upload-panel {
-                order: 2;
+                order: 4;
             }
 
             .workspace-main > .transcript-panel {
-                order: 3;
+                order: 2;
             }
 
             .workspace-main > .studio-grid {
-                order: 4;
+                order: 3;
             }
 
             .workspace-main > .diagnostics-panel,
@@ -4545,7 +4542,11 @@
                 order: 5;
             }
 
-            .utility-card-ai .ai-output {
+            .studio-grid-main {
+                grid-template-columns: 1fr;
+            }
+
+            .utility-card-ai-main .ai-output {
                 min-height: 180px;
             }
         }
@@ -4658,6 +4659,49 @@
 
             .assistant-dock .assistant-launcher-label {
                 display: none;
+            }
+        }
+
+        @media (max-height: 820px) {
+            .page {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .controls {
+                order: 2;
+            }
+
+            .workspace-shell {
+                order: 3;
+            }
+
+            .workspace-banner {
+                order: 4;
+            }
+
+            .api-panel {
+                order: 5;
+            }
+        }
+
+        @media (max-height: 820px) and (min-width: 900px) {
+            .workspace-left-rail,
+            .workspace-right-rail {
+                position: static;
+            }
+
+            .workspace-shell {
+                grid-template-columns: minmax(0, 1fr) 280px;
+                grid-template-areas:
+                    'main right'
+                    'left left';
+            }
+
+            .workspace-main > .rec-panel {
+                position: sticky;
+                top: 88px;
+                z-index: 24;
             }
         }
 
