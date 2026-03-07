@@ -969,9 +969,12 @@ qdrant => Qdrant"></textarea>
                     modeRealtimeBtn.classList.toggle('disabled', !runtimeCapabilities.hasSpeechRecognition);
                     modeRealtimeBtn.title = runtimeCapabilities.hasSpeechRecognition ? 'Live dictation with browser speech recognition' : 'Live mode is limited here. Use Quality or File mode.';
                 }
-                if (captureSupportCard) captureSupportCard.style.display = state.mode === 'file' ? 'none' : '';
-                if (captureToolbar) captureToolbar.style.display = state.mode === 'file' ? 'none' : '';
-                if (captureHelpPanel) captureHelpPanel.hidden = state.mode === 'file' || !state.captureHelpOpen;
+                if (captureSupportCard) {
+                    captureSupportCard.style.display = '';
+                    captureSupportCard.classList.toggle('is-file-mode', state.mode === 'file');
+                }
+                if (captureToolbar) captureToolbar.style.display = '';
+                if (captureHelpPanel) captureHelpPanel.hidden = !state.captureHelpOpen;
             }
 
             function setCaptureSource(source, options = {}) {
@@ -980,7 +983,10 @@ qdrant => Qdrant"></textarea>
                 localStorage.setItem('vt_capture_source', state.captureSource);
                 if (state.captureSource === 'external-help') state.captureHelpOpen = true;
                 else if (!options.keepHelp) state.captureHelpOpen = false;
-                if (state.captureSource !== 'mic' && state.mode === 'realtime') {
+                if (state.captureSource === 'external-help') {
+                    renderCaptureUi();
+                    setStatus('Capture setup help', 'Choose the best setup below, or switch back to Microphone to record now');
+                } else if (state.captureSource !== 'mic' && state.mode === 'realtime') {
                     if (!options.silent) toast('Live mode only works with the microphone. Switched to Quality.', 'warning');
                     setMode('quality', { silent: true });
                 } else {
@@ -4298,7 +4304,7 @@ Preferred answer style:
                     }
                     nextMode = canUseQualityMode() ? 'quality' : 'file';
                 }
-                if (nextMode === 'quality' && !canUseQualityMode()) {
+                if (nextMode === 'quality' && state.captureSource !== 'external-help' && !canUseQualityMode()) {
                     if (!options.silent) toast('Quality capture is limited here. Switched to File mode.', 'warning', 3600);
                     nextMode = 'file';
                 }
