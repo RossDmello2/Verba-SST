@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verbatim - Universal Voice Transcriber</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="page" id="page">
+
+        <header class="header">
+            <div class="brand">
+                <div class="brand-badge">verbatim</div>
+                <div class="brand-copy">
+                    <h1 class="brand-name">Voice <em>Transcriber</em></h1>
+                    <p class="brand-sub">Single-file speech workspace with live capture, file transcription, and Groq-first AI cleanup.</p>
+                </div>
+            </div>
+            <div class="header-meta">
+                <span class="header-status">Light workspace</span>
+                <span><kbd>Space</kbd> toggle</span>
+                <span><kbd>Ctrl C</kbd> copy</span>
+                <span><kbd>Ctrl O</kbd> file</span>
+            </div>
+        </header>
+
+        <div id="mainContent"></div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
