@@ -1745,13 +1745,20 @@
 
         /* Assistant */
         .assistant-shell {
+            --assistant-safe-top: calc(16px + env(safe-area-inset-top, 0));
+            --assistant-safe-right: calc(22px + env(safe-area-inset-right, 0));
+            --assistant-safe-bottom: calc(22px + env(safe-area-inset-bottom, 0));
+            --assistant-safe-left: calc(16px + env(safe-area-inset-left, 0));
             position: fixed;
-            right: calc(22px + env(safe-area-inset-right, 0));
-            bottom: calc(22px + env(safe-area-inset-bottom, 0));
+            top: var(--assistant-safe-top);
+            right: var(--assistant-safe-right);
+            bottom: var(--assistant-safe-bottom);
+            left: var(--assistant-safe-left);
             z-index: 90;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
+            justify-content: flex-end;
             gap: 12px;
             pointer-events: none;
         }
@@ -1911,10 +1918,12 @@
         }
 
         .assistant-panel {
-            width: min(390px, calc(100vw - 24px));
-            max-height: min(560px, calc(100vh - 120px));
+            width: min(390px, 100%);
+            max-height: min(560px, calc(100vh - var(--assistant-safe-top) - var(--assistant-safe-bottom)));
+            max-height: min(560px, calc(100dvh - var(--assistant-safe-top) - var(--assistant-safe-bottom)));
             display: flex;
             flex-direction: column;
+            min-height: 0;
             border-radius: 26px;
             background: rgba(255, 255, 255, 0.96);
             border: 1px solid rgba(207, 218, 233, 0.92);
@@ -1928,8 +1937,9 @@
         }
 
         .assistant-shell.maximized .assistant-panel {
-            width: min(760px, calc(100vw - 40px));
-            max-height: min(86vh, calc(100vh - 32px));
+            width: min(760px, 100%);
+            max-height: calc(100vh - var(--assistant-safe-top) - var(--assistant-safe-bottom));
+            max-height: calc(100dvh - var(--assistant-safe-top) - var(--assistant-safe-bottom));
         }
 
         .assistant-shell.open .assistant-panel {
@@ -2204,12 +2214,12 @@
 
         .assistant-messages {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
             padding: 12px 14px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            min-height: 260px;
             scrollbar-width: thin;
             scrollbar-color: rgba(189, 202, 224, 0.9) transparent;
         }
@@ -4046,7 +4056,8 @@
 
             .assistant-panel {
                 width: 100%;
-                max-height: min(78vh, 640px);
+                max-height: min(640px, calc(100vh - var(--assistant-safe-top) - var(--assistant-safe-bottom)));
+                max-height: min(640px, calc(100dvh - var(--assistant-safe-top) - var(--assistant-safe-bottom)));
                 border-radius: 24px;
             }
 
@@ -4101,7 +4112,7 @@
 
             .assistant-messages {
                 padding: 10px 12px;
-                min-height: 220px;
+                min-height: 0;
             }
 
             .assistant-bubble {
@@ -4140,9 +4151,10 @@
             }
 
             .assistant-shell {
-                right: calc(12px + env(safe-area-inset-right, 0));
-                bottom: calc(12px + env(safe-area-inset-bottom, 0));
-                left: calc(12px + env(safe-area-inset-left, 0));
+                --assistant-safe-top: calc(12px + env(safe-area-inset-top, 0));
+                --assistant-safe-right: calc(12px + env(safe-area-inset-right, 0));
+                --assistant-safe-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+                --assistant-safe-left: calc(12px + env(safe-area-inset-left, 0));
                 align-items: stretch;
             }
 

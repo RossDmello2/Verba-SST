@@ -3737,6 +3737,17 @@ Preferred answer style:
                 }));
             }
 
+            function sanitizeAssistantUiState(ui) {
+                const raw = ui && typeof ui === 'object' ? ui : {};
+                return {
+                    isOpen: !!raw.isOpen && !raw.minimized,
+                    minimized: !!raw.minimized || !raw.isOpen,
+                    maximized: false,
+                    showHistory: !!raw.showHistory,
+                    unread: Math.max(0, Number(raw.unread || 0) || 0)
+                };
+            }
+
             function setAssistantDraft(value) {
                 state.assistant.draft = value;
                 sessionStorage.setItem('vt_assistant_draft', value);
@@ -3914,6 +3925,9 @@ Preferred answer style:
                 state.assistant.minimized = !isOpen;
                 if (!isOpen && state.assistant.isListening && assistantRecognition) {
                     try { assistantRecognition.stop(); } catch (e) { }
+                }
+                if (!isOpen) {
+                    state.assistant.maximized = false;
                 }
                 if (isOpen) {
                     state.assistant.unread = 0;
@@ -5281,12 +5295,13 @@ Preferred answer style:
             setCaptureSource(state.captureSource, { silent: true });
             setMode(state.mode || 'realtime', { silent: true });
             ensureAssistantThread();
-            state.assistant.unread = Number(state.assistant.ui?.unread || 0);
-            state.assistant.maximized = !!state.assistant.ui?.maximized;
-            state.assistant.showHistory = !!state.assistant.ui?.showHistory;
+            state.assistant.ui = sanitizeAssistantUiState(state.assistant.ui);
+            state.assistant.unread = state.assistant.ui.unread;
+            state.assistant.maximized = false;
+            state.assistant.showHistory = !!state.assistant.ui.showHistory;
             assistantInput.value = state.assistant.draft || '';
             setAssistantDraft(state.assistant.draft || '');
             renderAssistantMessages();
-            setAssistantOpen(!!state.assistant.ui?.isOpen && !state.assistant.ui?.minimized);
+            setAssistantOpen(!!state.assistant.ui.isOpen);
             updateDiagnostics(state.diagnostics || {}, 'Ready');
         }
