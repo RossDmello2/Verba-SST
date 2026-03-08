@@ -102,6 +102,69 @@
           <textarea class="api-key-input" id="geminiKeyVault" rows="3" placeholder="Optional Gemini keys - one per line - used only for assistant image and PDF analysis"></textarea>
           <button class="api-btn-sm save-btn" id="geminiVaultSave">Save vault</button>
         </div>
+        <div class="api-row api-model-row">
+          <span class="api-label">Gemini model</span>
+          <select id="geminiModelSelect" class="api-inline-select api-select" aria-label="Gemini analysis model">
+            <option value="">Loading Gemini models...</option>
+          </select>
+          <div class="api-info-wrap">
+            <button class="api-info-btn" type="button" aria-label="Gemini free-tier model info" title="Gemini free-tier model info">i</button>
+            <div class="api-info-popover" role="note" aria-label="Gemini free-tier model guide">
+              <div class="api-info-title">Gemini Model Guide</div>
+              <div class="api-info-sub">Free-key limits plus paid-only note for image/PDF analysis models</div>
+              <table class="api-info-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>RPM</th>
+                    <th>RPD</th>
+                    <th>Best For</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Gemini 2.5 Pro</td>
+                    <td>5</td>
+                    <td>100</td>
+                    <td>Paid Gemini key only</td>
+                  </tr>
+                  <tr>
+                    <td>Gemini 2.5 Flash</td>
+                    <td>10</td>
+                    <td>250</td>
+                    <td>General use, chatbots</td>
+                  </tr>
+                  <tr>
+                    <td>Gemini 2.5 Flash-Lite</td>
+                    <td>15</td>
+                    <td>1,000</td>
+                    <td>Bulk tasks, simple Q&amp;A</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="api-row" style="align-items:flex-start;">
+          <span class="api-label">Gemini usage</span>
+          <div class="gemini-usage-card" id="geminiUsageCard">
+            <div class="gemini-usage-head">
+              <div class="gemini-usage-title" id="geminiUsageTitle">App-tracked Gemini usage</div>
+              <button class="api-btn-sm" id="geminiUsageReset" type="button">Reset</button>
+            </div>
+            <div class="gemini-usage-stat">
+              <span>Minute window</span>
+              <span id="geminiUsageMinuteText">0 / 15 used</span>
+            </div>
+            <div class="gemini-usage-bar"><span id="geminiUsageMinuteBar"></span></div>
+            <div class="gemini-usage-stat">
+              <span>Daily window</span>
+              <span id="geminiUsageDayText">0 / 1000 used</span>
+            </div>
+            <div class="gemini-usage-bar gemini-usage-bar-day"><span id="geminiUsageDayBar"></span></div>
+            <div class="gemini-usage-note" id="geminiUsageNote">Tracked from this app only. External Gemini usage is not included.</div>
+          </div>
+        </div>
         <div class="api-row">
           <span class="api-label">Audio model</span>
           <input type="text" class="api-key-input" id="audioModelInput" placeholder="Speech model. Groq translation auto-switches to whisper-large-v3">
@@ -612,7 +675,7 @@ qdrant => Qdrant"></textarea>
         </div>
         <div class="assistant-messages" id="assistantMessages"></div>
         <div class="assistant-footer">
-          <div class="assistant-input-wrap">
+          <div class="assistant-input-wrap" id="assistantInputWrap">
             <textarea class="assistant-input" id="assistantInput" placeholder="Ask anything. Example: What does Quality mode do, or explain ML in simple terms."></textarea>
             <div class="assistant-attachment-preview" id="assistantAttachmentPreview" hidden>
               <div class="assistant-attachment-pill">
@@ -631,7 +694,7 @@ qdrant => Qdrant"></textarea>
               <select id="assistantModelSelect" class="assistant-model-select" aria-label="Assistant model">
                 <option value="">Loading models...</option>
               </select>
-              <input type="file" id="assistantFileInput" hidden accept="image/png,image/jpeg,image/webp">
+              <input type="file" id="assistantFileInput" hidden multiple accept="image/png,image/jpeg,image/webp">
               <button class="assistant-attach-btn" id="assistantAttachBtn" type="button" aria-label="Add photos and files" title="Add photos and files">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.9-9.9a4 4 0 1 1 5.66 5.66l-10 10a2 2 0 0 1-2.83-2.83l8.84-8.84"></path>
@@ -651,7 +714,7 @@ qdrant => Qdrant"></textarea>
               </button>
             </div>
           </div>
-          <div class="assistant-note">Uses the assistant model you pick below. Groq vision models handle images, and Gemini handles images plus PDFs.</div>
+          <div class="assistant-note">Uses the assistant model you pick below for chat. Image and PDF analysis can route through the Gemini model set in API Configuration.</div>
         </div>
       </div>
       <div class="assistant-dock">
@@ -746,6 +809,11 @@ qdrant => Qdrant"></textarea>
                 })(),
                 activeMemoryPackId: localStorage.getItem('vt_memory_pack_active') || '',
                 outputStyle: localStorage.getItem('vt_output_style') || 'default',
+                geminiAnalysisModel: localStorage.getItem('vt_gemini_analysis_model') || '',
+                geminiUsage: (() => {
+                    try { return JSON.parse(localStorage.getItem('vt_gemini_usage') || '{}') || {}; }
+                    catch (e) { return {}; }
+                })(),
                 autosaveEnabled: localStorage.getItem('vt_autosave') !== '0',
                 speakerMode: localStorage.getItem('vt_speaker_mode') === '1',
                 fileHash: '',
@@ -906,6 +974,14 @@ qdrant => Qdrant"></textarea>
             const geminiKeySaveBtn = $('geminiKeySave');
             const geminiKeyTestBtn = $('geminiKeyTest');
             const geminiVaultSaveBtn = $('geminiVaultSave');
+            const geminiModelSelect = $('geminiModelSelect');
+            const geminiUsageTitle = $('geminiUsageTitle');
+            const geminiUsageMinuteText = $('geminiUsageMinuteText');
+            const geminiUsageMinuteBar = $('geminiUsageMinuteBar');
+            const geminiUsageDayText = $('geminiUsageDayText');
+            const geminiUsageDayBar = $('geminiUsageDayBar');
+            const geminiUsageNote = $('geminiUsageNote');
+            const geminiUsageResetBtn = $('geminiUsageReset');
             const apiProvider = $('apiProvider');
             const apiStatusDot = $('apiStatusDot');
             const apiStatusLabel = $('apiStatusLabel');
@@ -954,6 +1030,7 @@ qdrant => Qdrant"></textarea>
             const assistantUnread = $('assistantUnread');
             const assistantMessages = $('assistantMessages');
             const assistantInput = $('assistantInput');
+            const assistantInputWrap = $('assistantInputWrap');
             const assistantRuntimeMeta = $('assistantRuntimeMeta');
             const assistantModelMeta = $('assistantModelMeta');
             const assistantModelSelect = $('assistantModelSelect');
@@ -983,13 +1060,15 @@ qdrant => Qdrant"></textarea>
             chatModelInput.placeholder = 'Groq recommendation: openai/gpt-oss-120b';
             populateChatModelControls();
             populateAssistantModelControls();
+            populateGeminiModelControls();
             if (apiNote) {
                 apiNote.innerHTML = `
       Stored only in your browser localStorage. Keep shared copies of this HTML free of real keys.<br>
       Groq-first defaults: transcription whisper-large-v3-turbo, translation whisper-large-v3, AI cleanup openai/gpt-oss-120b, fast fallback openai/gpt-oss-20b.<br>
       Groq keys: <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> |
       OpenAI fallback: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> |
-      Gemini assistant files: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a><br>
+      Gemini assistant files: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a> |
+      Free Gemini key: use Flash-Lite or Flash. Gemini 2.5 Pro is paid-key only.<br>
       <span id="apiVaultMeta">No extra keys saved</span><br>
       <span id="geminiVaultMeta">No keys stored for gemini</span>
     `;
@@ -1807,7 +1886,8 @@ qdrant => Qdrant"></textarea>
             async function testGeminiKey() {
                 if (!getProviderKeys('gemini').length) { toast('Enter a Gemini key first', 'warning'); return; }
                 try {
-                    const resp = await fetch(getGeminiGenerateEndpoint('gemini-2.5-flash'), {
+                    recordGeminiUsage(getConfiguredGeminiAnalysisModel());
+                    const resp = await fetch(getGeminiGenerateEndpoint(getConfiguredGeminiAnalysisModel()), {
                         method: 'POST',
                         headers: {
                             'x-goog-api-key': getProviderKeys('gemini')[0],
@@ -3029,11 +3109,50 @@ qdrant => Qdrant"></textarea>
             }
 
             function defaultAssistantModelId() {
-                return 'groq:meta-llama/llama-4-scout-17b-16e-instruct';
+                return 'assistant:max';
+            }
+
+            function getGeminiAnalysisModelCatalog() {
+                return [
+                    {
+                        value: 'gemini-2.5-flash-lite',
+                        label: 'Gemini 2.5 Flash-Lite',
+                        meta: 'Recommended for free-tier image/PDF analysis',
+                        rpm: 15,
+                        rpd: 1000
+                    },
+                    {
+                        value: 'gemini-2.5-flash',
+                        label: 'Gemini 2.5 Flash',
+                        meta: 'Higher quality multimodal',
+                        rpm: 10,
+                        rpd: 250
+                    },
+                    {
+                        value: 'gemini-2.5-pro',
+                        label: 'Gemini 2.5 Pro',
+                        meta: 'Paid Gemini key only',
+                        rpm: 5,
+                        rpd: 100
+                    }
+                ];
+            }
+
+            function defaultGeminiAnalysisModel() {
+                return 'gemini-2.5-flash-lite';
             }
 
             function getAssistantModelCatalog() {
                 return [
+                    {
+                        id: 'assistant:max',
+                        provider: 'smart',
+                        model: 'assistant:max',
+                        label: 'Max',
+                        meta: 'Smart routing for long output + latency',
+                        supportsImages: true,
+                        supportsPdf: true
+                    },
                     {
                         id: 'groq:meta-llama/llama-4-scout-17b-16e-instruct',
                         provider: 'groq',
@@ -3071,44 +3190,189 @@ qdrant => Qdrant"></textarea>
                         supportsPdf: false
                     },
                     {
-                        id: 'gemini:gemini-2.5-flash',
-                        provider: 'gemini',
-                        model: 'gemini-2.5-flash',
-                        label: 'Gemini 2.5 Flash',
-                        meta: 'Images + PDFs',
-                        supportsImages: true,
-                        supportsPdf: true
-                    },
-                    {
-                        id: 'gemini:gemini-2.5-pro',
-                        provider: 'gemini',
-                        model: 'gemini-2.5-pro',
-                        label: 'Gemini 2.5 Pro',
-                        meta: 'Higher quality multimodal',
-                        supportsImages: true,
-                        supportsPdf: true
-                    },
-                    {
-                        id: 'openai:gpt-4o-mini',
-                        provider: 'openai',
-                        model: 'gpt-4o-mini',
-                        label: 'OpenAI - GPT-4o Mini',
-                        meta: 'Text fallback',
+                        id: 'groq:moonshotai/kimi-k2-instruct',
+                        provider: 'groq',
+                        model: 'moonshotai/kimi-k2-instruct',
+                        label: 'Groq - Kimi K2',
+                        meta: 'Large context + analysis',
                         supportsImages: false,
                         supportsPdf: false
-                    }
+                    },
+                    {
+                        id: 'groq:qwen/qwen3-32b',
+                        provider: 'groq',
+                        model: 'qwen/qwen3-32b',
+                        label: 'Groq - Qwen3 32B',
+                        meta: 'Reasoning + coding',
+                        supportsImages: false,
+                        supportsPdf: false
+                    },
+                    {
+                        id: 'groq:llama-3.3-70b-versatile',
+                        provider: 'groq',
+                        model: 'llama-3.3-70b-versatile',
+                        label: 'Groq - Llama 3.3 70B Versatile',
+                        meta: 'Strong general use',
+                        supportsImages: false,
+                        supportsPdf: false
+                    },
+                    {
+                        id: 'groq:llama-3.1-8b-instant',
+                        provider: 'groq',
+                        model: 'llama-3.1-8b-instant',
+                        label: 'Groq - Llama 3.1 8B Instant',
+                        meta: 'Very fast replies',
+                        supportsImages: false,
+                        supportsPdf: false
+                    },
                 ];
             }
 
             function getAssistantProviderLabel(provider) {
                 if (provider === 'gemini') return 'Gemini';
                 if (provider === 'openai') return 'OpenAI';
+                if (provider === 'smart') return 'Max';
                 return 'Groq';
             }
 
             function getAssistantModelOption(id = state.assistant.model) {
                 const catalog = getAssistantModelCatalog();
                 return catalog.find(item => item.id === id) || catalog[0];
+            }
+
+            function getConfiguredGeminiAnalysisModel() {
+                const catalog = getGeminiAnalysisModelCatalog();
+                const matched = catalog.find(item => item.value === state.geminiAnalysisModel);
+                return matched?.value || defaultGeminiAnalysisModel();
+            }
+
+            function getConfiguredGeminiAnalysisOption() {
+                const model = getConfiguredGeminiAnalysisModel();
+                const catalog = getGeminiAnalysisModelCatalog();
+                const matched = catalog.find(item => item.value === model) || catalog[0];
+                return {
+                    id: `gemini:${matched.value}`,
+                    provider: 'gemini',
+                    model: matched.value,
+                    label: `Gemini - ${matched.label.replace(/^Gemini\s*/i, '')}`,
+                    meta: matched.meta,
+                    supportsImages: true,
+                    supportsPdf: true,
+                    configured: true
+                };
+            }
+
+            function findAssistantCatalogOption(id) {
+                return getAssistantModelCatalog().find(item => item.id === id) || null;
+            }
+
+            function isLongOutputAssistantRequest(text = '') {
+                const normalized = String(text || '').trim().toLowerCase();
+                if (!normalized) return false;
+                if (normalized.length > 280) return true;
+                return /(complete implementation|full implementation|full code|complete code|long output|detailed document|detailed explanation|comprehensive|entire file|full api|full project|2000|1500|report|documentation|generate code|generate a project|rest api|express\.js|fastapi|without truncating|all sections)/i.test(normalized);
+            }
+
+            function isContextHeavyAssistantRequest(text = '') {
+                return /(analyze|architecture|design|refactor|plan|compare|research|large context|codebase|workflow|system design)/i.test(String(text || ''));
+            }
+
+            function isQuickAssistantRequest(text = '') {
+                return /(quick|brief|short|one line|fast answer|summarize quickly|tl;dr)/i.test(String(text || ''));
+            }
+
+            function resolveMaxAssistantModel(attachments = null, text = '') {
+                const normalizedAttachments = normalizeAssistantAttachmentList(attachments);
+                if (normalizedAttachments.length) {
+                    if (getProviderKeys('gemini').length) {
+                        return getConfiguredGeminiAnalysisOption();
+                    }
+                    return findAssistantCatalogOption('groq:meta-llama/llama-4-scout-17b-16e-instruct') || getAssistantModelCatalog()[0];
+                }
+                if (isLongOutputAssistantRequest(text)) {
+                    return findAssistantCatalogOption('groq:llama-3.3-70b-versatile') || getAssistantModelCatalog()[0];
+                }
+                if (isContextHeavyAssistantRequest(text)) {
+                    return findAssistantCatalogOption('groq:moonshotai/kimi-k2-instruct')
+                        || findAssistantCatalogOption('groq:qwen/qwen3-32b')
+                        || getAssistantModelCatalog()[0];
+                }
+                if (isQuickAssistantRequest(text)) {
+                    return findAssistantCatalogOption('groq:llama-3.1-8b-instant')
+                        || findAssistantCatalogOption('groq:openai/gpt-oss-20b')
+                        || getAssistantModelCatalog()[0];
+                }
+                return findAssistantCatalogOption('groq:llama-3.3-70b-versatile')
+                    || findAssistantCatalogOption('groq:openai/gpt-oss-120b')
+                    || getAssistantModelCatalog()[0];
+            }
+
+            function persistGeminiUsage() {
+                localStorage.setItem('vt_gemini_usage', JSON.stringify(state.geminiUsage || {}));
+            }
+
+            function getGeminiUsageEntry(model = getConfiguredGeminiAnalysisModel()) {
+                const now = Date.now();
+                const today = new Date().toISOString().slice(0, 10);
+                const existing = state.geminiUsage?.[model] && typeof state.geminiUsage[model] === 'object'
+                    ? { ...state.geminiUsage[model] }
+                    : {};
+                const minuteWindowStart = now - Number(existing.minuteWindowStart || 0) < 60000
+                    ? Number(existing.minuteWindowStart || now)
+                    : now;
+                const minuteCount = now - Number(existing.minuteWindowStart || 0) < 60000
+                    ? Math.max(0, Number(existing.minuteCount || 0))
+                    : 0;
+                const dayKey = existing.dayKey === today ? today : today;
+                const dayCount = existing.dayKey === today
+                    ? Math.max(0, Number(existing.dayCount || 0))
+                    : 0;
+                const normalized = { minuteWindowStart, minuteCount, dayKey, dayCount };
+                state.geminiUsage = { ...(state.geminiUsage || {}), [model]: normalized };
+                return normalized;
+            }
+
+            function recordGeminiUsage(model = getConfiguredGeminiAnalysisModel()) {
+                const entry = getGeminiUsageEntry(model);
+                entry.minuteCount += 1;
+                entry.dayCount += 1;
+                state.geminiUsage = { ...(state.geminiUsage || {}), [model]: entry };
+                persistGeminiUsage();
+                renderGeminiUsageMeter();
+            }
+
+            function resetGeminiUsage(model = getConfiguredGeminiAnalysisModel()) {
+                const today = new Date().toISOString().slice(0, 10);
+                state.geminiUsage = {
+                    ...(state.geminiUsage || {}),
+                    [model]: {
+                        minuteWindowStart: Date.now(),
+                        minuteCount: 0,
+                        dayKey: today,
+                        dayCount: 0
+                    }
+                };
+                persistGeminiUsage();
+                renderGeminiUsageMeter();
+            }
+
+            function renderGeminiUsageMeter() {
+                const model = getConfiguredGeminiAnalysisModel();
+                const quota = getGeminiAnalysisModelCatalog().find(item => item.value === model) || { rpm: 15, rpd: 1000, label: model };
+                const entry = getGeminiUsageEntry(model);
+                persistGeminiUsage();
+                const minuteUsed = Math.max(0, Number(entry.minuteCount || 0));
+                const dayUsed = Math.max(0, Number(entry.dayCount || 0));
+                const minuteLimit = Math.max(1, Number(quota.rpm || 1));
+                const dayLimit = Math.max(1, Number(quota.rpd || 1));
+                const minutePct = Math.min(100, (minuteUsed / minuteLimit) * 100);
+                const dayPct = Math.min(100, (dayUsed / dayLimit) * 100);
+                if (geminiUsageTitle) geminiUsageTitle.textContent = `${quota.label} usage`;
+                if (geminiUsageMinuteText) geminiUsageMinuteText.textContent = `${minuteUsed} / ${minuteLimit} used | ${Math.max(0, minuteLimit - minuteUsed)} left`;
+                if (geminiUsageDayText) geminiUsageDayText.textContent = `${dayUsed} / ${dayLimit} used | ${Math.max(0, dayLimit - dayUsed)} left`;
+                if (geminiUsageMinuteBar) geminiUsageMinuteBar.style.width = `${minutePct}%`;
+                if (geminiUsageDayBar) geminiUsageDayBar.style.width = `${dayPct}%`;
+                if (geminiUsageNote) geminiUsageNote.textContent = 'Tracked from this app only. External Gemini usage is not included.';
             }
 
             function getActiveAssistantModelOption() {
@@ -3124,9 +3388,11 @@ qdrant => Qdrant"></textarea>
             }
 
             function assistantAttachmentAccept(option = getActiveAssistantModelOption()) {
-                if (!option) return '';
-                if (option.supportsPdf) return 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
-                if (option.supportsImages) return 'image/png,image/jpeg,image/webp';
+                const activeOption = option || getActiveAssistantModelOption();
+                if (getProviderKeys('gemini').length) return 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
+                if (!activeOption) return '';
+                if (activeOption.supportsPdf) return 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
+                if (activeOption.supportsImages) return 'image/png,image/jpeg,image/webp';
                 return '';
             }
 
@@ -3146,10 +3412,26 @@ qdrant => Qdrant"></textarea>
             }
 
             function canAssistantModelUseAttachment(option, attachment) {
-                if (!option || !attachment) return true;
-                const kind = attachment.kind || attachmentKindFromMimeType(attachment.mimeType);
-                if (kind === 'pdf') return !!option.supportsPdf;
+                const attachments = normalizeAssistantAttachmentList(attachment);
+                if (!option || !attachments.length) return true;
+                const hasPdf = attachments.some(item => item.kind === 'pdf');
+                if (hasPdf) return !!option.supportsPdf;
                 return !!option.supportsImages;
+            }
+
+            function getAssistantOptionForRequest(attachment = null, text = '') {
+                const attachments = normalizeAssistantAttachmentList(attachment);
+                const activeOption = getActiveAssistantModelOption();
+                if (activeOption.id === 'assistant:max') {
+                    return resolveMaxAssistantModel(attachments, text);
+                }
+                if (!attachments.length) return activeOption;
+                if (getProviderKeys('gemini').length) {
+                    return getConfiguredGeminiAnalysisOption();
+                }
+                const hasPdf = attachments.some(item => item.kind === 'pdf');
+                if (hasPdf) return getConfiguredGeminiAnalysisOption();
+                return activeOption;
             }
 
             function setAssistantModel(value, options = {}) {
@@ -3182,6 +3464,22 @@ qdrant => Qdrant"></textarea>
                 if (assistantModelSelect) assistantModelSelect.value = state.assistant.model;
             }
 
+            function populateGeminiModelControls() {
+                const catalog = getGeminiAnalysisModelCatalog();
+                const active = getConfiguredGeminiAnalysisModel();
+                const optionMarkup = [
+                    `<option value="${defaultGeminiAnalysisModel()}">Recommended - Gemini 2.5 Flash-Lite</option>`,
+                    ...catalog
+                        .filter(item => item.value !== defaultGeminiAnalysisModel())
+                        .map(item => `<option value="${item.value}">${item.label} - ${item.meta}</option>`)
+                ].join('');
+                state.geminiAnalysisModel = active;
+                localStorage.setItem('vt_gemini_analysis_model', active);
+                if (geminiModelSelect) geminiModelSelect.innerHTML = optionMarkup;
+                if (geminiModelSelect) geminiModelSelect.value = active;
+                renderGeminiUsageMeter();
+            }
+
             function getChatModelCatalog(provider) {
                 if (provider === 'groq') {
                     return [
@@ -3212,7 +3510,7 @@ qdrant => Qdrant"></textarea>
                     ? active
                     : defaultChatModel(state.apiProvider);
                 if (chatModelSelect) chatModelSelect.value = matched;
-                if (assistantModelSelect) assistantModelSelect.value = matched;
+                if (assistantModelSelect) assistantModelSelect.value = state.assistant.model;
             }
 
             function populateChatModelControls() {
@@ -3225,7 +3523,6 @@ qdrant => Qdrant"></textarea>
                         .map(item => `<option value="${item.value}">${item.label} - ${item.value}</option>`),
                 ].join('');
                 if (chatModelSelect) chatModelSelect.innerHTML = optionMarkup;
-                if (assistantModelSelect) assistantModelSelect.innerHTML = optionMarkup;
                 if (chatModelSuggestions) {
                     chatModelSuggestions.innerHTML = catalog
                         .map(item => `<option value="${item.value}"></option>`)
@@ -3962,13 +4259,23 @@ Preferred answer style:
                 return meta;
             }
 
+            function normalizeAssistantAttachmentList(raw) {
+                if (Array.isArray(raw)) {
+                    return raw
+                        .map(item => normalizeAssistantAttachmentMeta(item))
+                        .filter(Boolean);
+                }
+                const fromSingle = normalizeAssistantAttachmentMeta(raw);
+                return fromSingle ? [fromSingle] : [];
+            }
+
             function cloneAssistantMessage(msg) {
-                const attachment = normalizeAssistantAttachmentMeta(msg?.attachment);
+                const attachments = normalizeAssistantAttachmentList(msg?.attachments || msg?.attachment);
                 return {
                     role: msg?.role === 'user' ? 'user' : 'assistant',
                     content: String(msg?.content || '').trim(),
                     ts: Number(msg?.ts || Date.now()),
-                    ...(attachment ? { attachment } : {})
+                    ...(attachments.length ? { attachments } : {})
                 };
             }
 
@@ -3981,8 +4288,8 @@ Preferred answer style:
                     content: cleaned,
                     ts: Number(extras.ts || Date.now())
                 };
-                const attachment = normalizeAssistantAttachmentMeta(extras.attachment);
-                if (attachment) message.attachment = attachment;
+                const attachments = normalizeAssistantAttachmentList(extras.attachments || extras.attachment);
+                if (attachments.length) message.attachments = attachments;
                 return message;
             }
 
@@ -4138,11 +4445,27 @@ Preferred answer style:
                 return `${attachment.name}${size}`;
             }
 
+            function describeAssistantAttachmentList(raw) {
+                const attachments = normalizeAssistantAttachmentList(raw);
+                if (!attachments.length) return '';
+                if (attachments.length === 1) return describeAssistantAttachment(attachments[0]);
+                const pdfCount = attachments.filter(item => item.kind === 'pdf').length;
+                const imageCount = attachments.length - pdfCount;
+                const parts = [];
+                if (imageCount) parts.push(`${imageCount} image${imageCount === 1 ? '' : 's'}`);
+                if (pdfCount) parts.push(`${pdfCount} PDF${pdfCount === 1 ? '' : 's'}`);
+                return `${parts.join(' + ')} attached`;
+            }
+
             function getDefaultAssistantPromptForAttachment(attachment) {
-                if (!attachment) return '';
-                return attachment.kind === 'pdf'
+                const attachments = normalizeAssistantAttachmentList(attachment);
+                if (!attachments.length) return '';
+                const hasPdf = attachments.some(item => item.kind === 'pdf');
+                return hasPdf
                     ? 'Please analyze this PDF and summarize the important content.'
-                    : 'Please analyze this image and extract the important details and any readable text.';
+                    : attachments.length > 1
+                        ? 'Please analyze these images and extract the important details and any readable text.'
+                        : 'Please analyze this image and extract the important details and any readable text.';
             }
 
             function clearAssistantAttachment(options = {}) {
@@ -4153,26 +4476,40 @@ Preferred answer style:
 
             function renderAssistantComposer() {
                 const modelOption = getActiveAssistantModelOption();
-                const pendingAttachment = normalizeAssistantAttachmentMeta(state.assistant.pendingAttachment);
+                const pendingAttachments = normalizeAssistantAttachmentList(state.assistant.pendingAttachment);
+                const pendingAttachment = pendingAttachments[0] || null;
                 const draftValue = String(assistantInput?.value || state.assistant.draft || '').trim();
+                const requestOption = getAssistantOptionForRequest(pendingAttachments, draftValue);
                 const providerLabel = getAssistantProviderLabel(modelOption.provider);
                 const capabilityLabel = modelOption.supportsPdf
                     ? 'Images + PDFs'
                     : modelOption.supportsImages
                         ? 'Images'
                         : 'Text only';
+                const routingLabel = modelOption.id === 'assistant:max'
+                    ? ` | routes to ${requestOption.label.replace(/^Groq - /, '').replace(/^Gemini - /, 'Gemini ')}`
+                    : pendingAttachment && requestOption.provider === 'gemini' && modelOption.provider !== 'gemini'
+                        ? ` | attachment via Gemini ${requestOption.model}`
+                        : '';
 
                 if (assistantModelSelect) assistantModelSelect.value = modelOption.id;
-                if (assistantModelMeta) assistantModelMeta.textContent = `${providerLabel} | ${modelOption.label.replace(/^.+? - /, '')} | ${capabilityLabel}`;
+                if (assistantModelMeta) assistantModelMeta.textContent = `${providerLabel} | ${modelOption.label.replace(/^.+? - /, '')} | ${capabilityLabel}${routingLabel}`;
                 if (assistantFileInput) assistantFileInput.accept = assistantAttachmentAccept(modelOption);
-                if (assistantAttachmentPreview) assistantAttachmentPreview.hidden = !pendingAttachment;
-                if (assistantAttachmentKind && pendingAttachment) assistantAttachmentKind.textContent = pendingAttachment.kind === 'pdf' ? 'PDF' : 'Image';
-                if (assistantAttachmentMeta && pendingAttachment) assistantAttachmentMeta.textContent = describeAssistantAttachment(pendingAttachment);
+                if (assistantAttachmentPreview) assistantAttachmentPreview.hidden = !pendingAttachments.length;
+                if (assistantAttachmentKind && pendingAttachments.length) {
+                    const hasPdf = pendingAttachments.some(item => item.kind === 'pdf');
+                    assistantAttachmentKind.textContent = pendingAttachments.length > 1
+                        ? `${pendingAttachments.length} files`
+                        : (hasPdf ? 'PDF' : 'Image');
+                }
+                if (assistantAttachmentMeta && pendingAttachments.length) assistantAttachmentMeta.textContent = describeAssistantAttachmentList(pendingAttachments);
                 if (assistantAttachBtn) {
-                    const canAttach = !!(modelOption.supportsImages || modelOption.supportsPdf);
+                    const canAttach = !!(modelOption.supportsImages || modelOption.supportsPdf || getProviderKeys('gemini').length);
                     assistantAttachBtn.disabled = !canAttach || !!state.assistant.isSending;
                     assistantAttachBtn.title = !canAttach
                         ? `${providerLabel} ${modelOption.label.replace(/^.+? - /, '')} is text only`
+                        : getProviderKeys('gemini').length
+                            ? `Add photos & files. Gemini analysis model: ${getConfiguredGeminiAnalysisModel()}`
                         : modelOption.supportsPdf
                             ? 'Add photos & files'
                             : 'Add photos. Switch to Gemini for PDFs';
@@ -4190,30 +4527,49 @@ Preferred answer style:
                             ? 'Stop voice input'
                             : 'Voice input (English)';
                 }
-                if (assistantSend) assistantSend.disabled = !!state.assistant.isSending || (!draftValue && !pendingAttachment);
+                if (assistantSend) {
+                    assistantSend.disabled = !!state.assistant.isSending || (!draftValue && !pendingAttachments.length);
+                    assistantSend.classList.toggle('loading', !!state.assistant.isSending);
+                    assistantSend.setAttribute(
+                        'aria-label',
+                        state.assistant.isSending
+                            ? (pendingAttachments.length ? 'Processing attachment and sending assistant message' : 'Sending assistant message')
+                            : 'Send assistant message'
+                    );
+                    assistantSend.title = state.assistant.isSending
+                        ? (pendingAttachments.length ? 'Processing attachment...' : 'Sending...')
+                        : 'Send';
+                }
             }
 
-            async function handleAssistantFileSelection(file) {
-                if (!file) return;
-                const mimeType = inferAttachmentMimeType(file);
-                if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf'].includes(mimeType)) {
-                    toast('Only PNG, JPG, WEBP, and PDF files are supported in the assistant.', 'warning', 3600);
-                    return;
+            async function handleAssistantFileSelection(fileList) {
+                const files = Array.isArray(fileList) ? fileList : Array.from(fileList || []).filter(Boolean);
+                if (!files.length) return;
+                const existing = Array.isArray(state.assistant.pendingAttachment)
+                    ? [...state.assistant.pendingAttachment]
+                    : (state.assistant.pendingAttachment ? [state.assistant.pendingAttachment] : []);
+                const nextAttachments = [...existing];
+                for (const file of files) {
+                    const mimeType = inferAttachmentMimeType(file);
+                    if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf'].includes(mimeType)) {
+                        toast('Only PNG, JPG, WEBP, and PDF files are supported in the assistant.', 'warning', 3600);
+                        return;
+                    }
+                    if ((file.size || 0) > ASSISTANT_ATTACHMENT_MAX_BYTES) {
+                        toast(`Assistant attachments are limited to ${formatFileSize(ASSISTANT_ATTACHMENT_MAX_BYTES)}.`, 'warning', 3600);
+                        return;
+                    }
+                    nextAttachments.push({ ...buildAssistantAttachmentMeta(file), file });
                 }
-                if ((file.size || 0) > ASSISTANT_ATTACHMENT_MAX_BYTES) {
-                    toast(`Assistant attachments are limited to ${formatFileSize(ASSISTANT_ATTACHMENT_MAX_BYTES)}.`, 'warning', 3600);
-                    return;
-                }
-                const meta = { ...buildAssistantAttachmentMeta(file), file };
-                if (meta.kind === 'pdf' && !getActiveAssistantModelOption().supportsPdf) {
-                    setAssistantModel('gemini:gemini-2.5-flash', { skipAttachmentCheck: true });
-                    toast('Switched assistant to Gemini 2.5 Flash for PDF support.', 'info', 3200);
-                }
-                if (!canAssistantModelUseAttachment(getActiveAssistantModelOption(), meta)) {
+                const requestOption = getAssistantOptionForRequest(nextAttachments, String(assistantInput?.value || state.assistant.draft || '').trim());
+                if (!canAssistantModelUseAttachment(requestOption, nextAttachments)) {
                     toast('The selected assistant model does not support that file type.', 'warning', 3200);
                     return;
                 }
-                state.assistant.pendingAttachment = meta;
+                if (requestOption.provider === 'gemini') {
+                    toast(`Attachments will use Gemini analysis model: ${requestOption.model}`, 'info', 3200);
+                }
+                state.assistant.pendingAttachment = nextAttachments;
                 renderAssistantComposer();
                 if (assistantInput) assistantInput.focus();
             }
@@ -4315,14 +4671,14 @@ Preferred answer style:
 
             function renderAssistantMessages() {
                 const msgs = Array.isArray(state.assistant.messages) ? state.assistant.messages : [];
-                assistantMessages.innerHTML = msgs.map(msg => {
+                const messageMarkup = msgs.map(msg => {
                     const role = msg.role === 'user' ? 'user' : 'assistant';
                     const displayText = role === 'assistant'
                         ? normalizeAssistantText(msg.content || '')
                         : String(msg.content || '');
-                    const attachment = normalizeAssistantAttachmentMeta(msg.attachment);
-                    const attachmentMarkup = attachment
-                        ? `<div class="assistant-message-attachment"><span class="assistant-message-attachment-kind">${escapeHtml(attachment.kind === 'pdf' ? 'PDF' : 'Image')}</span><span class="assistant-message-attachment-name">${escapeHtml(describeAssistantAttachment(attachment))}</span></div>`
+                    const attachments = normalizeAssistantAttachmentList(msg.attachments || msg.attachment);
+                    const attachmentMarkup = attachments.length
+                        ? attachments.map(attachment => `<div class="assistant-message-attachment"><span class="assistant-message-attachment-kind">${escapeHtml(attachment.kind === 'pdf' ? 'PDF' : 'Image')}</span><span class="assistant-message-attachment-name">${escapeHtml(describeAssistantAttachment(attachment))}</span></div>`).join('')
                         : '';
                     return `
       <div class="assistant-message ${role}">
@@ -4330,6 +4686,21 @@ Preferred answer style:
         <div class="assistant-bubble">${attachmentMarkup}${assistantEscapedHtml(displayText)}</div>
       </div>`;
                 }).join('');
+                const thinkingMarkup = state.assistant.isSending
+                    ? `
+      <div class="assistant-message assistant assistant-thinking" aria-live="polite" aria-label="Assistant is generating a response">
+        <div class="assistant-avatar-dot" aria-hidden="true"></div>
+        <div class="assistant-bubble assistant-thinking-bubble">
+          <div class="assistant-thinking-label">Generating response...</div>
+          <div class="assistant-thinking-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>`
+                    : '';
+                assistantMessages.innerHTML = messageMarkup + thinkingMarkup;
                 assistantEmpty.style.display = msgs.length ? 'none' : '';
                 assistantMessages.scrollTop = assistantMessages.scrollHeight;
                 const unread = Number(state.assistant.unread || 0);
@@ -4386,11 +4757,30 @@ Preferred answer style:
             function getAssistantPromptContext() {
                 const importedMemory = getImportedMemoryContext({ maxChars: 7000 });
                 return {
-                    system: `You are Verba Assistant.\n${ASSISTANT_KB}\n\nCurrent runtime state:\n${getAssistantRuntimeSummary()}\n\nPreferred output style:\n${getOutputStyleInstruction()}`,
+                    system: `You are Verba Assistant.\n${ASSISTANT_KB}\n\nCurrent runtime state:\n${getAssistantRuntimeSummary()}\n\nPreferred output style:\n${getOutputStyleInstruction()}\n\nWhen generating code, always output the complete implementation without truncating or summarizing. Never say "rest of code here" or "continues below". For documents, use proper headings, sections and formatting. Prioritize completeness over brevity.`,
                     memory: importedMemory
                         ? `Use the imported user memory below as long-term context for preferences, projects, terminology, and stable background facts. Do not let it override transcript text or current runtime state when they conflict.\n\n${importedMemory}`
                         : ''
                 };
+            }
+
+            function getAssistantGenerationConfig() {
+                return {
+                    temperature: 0.3,
+                    topP: 0.95,
+                    maxTokens: 8192,
+                    frequencyPenalty: 0,
+                    presencePenalty: 0
+                };
+            }
+
+            function getAttachmentAnalysisInstruction(attachments = null) {
+                const normalized = normalizeAssistantAttachmentList(attachments);
+                if (!normalized.length) return '';
+                const hasPdf = normalized.some(item => item.kind === 'pdf');
+                return hasPdf
+                    ? 'The latest user message includes attached PDFs. You must inspect the attached documents directly, perform OCR where needed, extract the visible text, tables, form fields, values, dates, names, totals, and key facts, then answer from the attachment contents instead of asking the user to provide the data manually.'
+                    : 'The latest user message includes attached images. You must inspect the attached images directly, perform OCR where needed, extract all readable text, tables, form fields, values, dates, names, totals, and key facts, then answer from the image contents instead of asking the user to provide the data manually.';
             }
 
             function buildAssistantPromptMessages(currentAttachment = null) {
@@ -4398,13 +4788,19 @@ Preferred answer style:
                     .filter(msg => msg && (msg.role === 'user' || msg.role === 'assistant'))
                     .slice(-8)
                     .map((msg, index, arr) => {
+                        const attachments = normalizeAssistantAttachmentList(msg.attachments || msg.attachment);
                         const isLatestAttachment = currentAttachment && msg.role === 'user' && index === arr.length - 1;
-                        if (isLatestAttachment && currentAttachment?.dataUrl) {
+                        const effectiveAttachments = isLatestAttachment
+                            ? normalizeAssistantAttachmentList(currentAttachment)
+                            : attachments;
+                        if (effectiveAttachments.length) {
                             return {
                                 role: msg.role,
                                 content: [
-                                    { type: 'text', text: String(msg.content || getDefaultAssistantPromptForAttachment(currentAttachment)) },
-                                    { type: 'image_url', image_url: { url: currentAttachment.dataUrl } }
+                                    { type: 'text', text: String(msg.content || getDefaultAssistantPromptForAttachment(effectiveAttachments)) },
+                                    ...effectiveAttachments
+                                        .filter(item => item?.dataUrl)
+                                        .map(item => ({ type: 'image_url', image_url: { url: item.dataUrl } }))
                                 ]
                             };
                         }
@@ -4416,6 +4812,10 @@ Preferred answer style:
                         role: 'system',
                         content: promptContext.system
                     },
+                    ...(getAttachmentAnalysisInstruction(currentAttachment) ? [{
+                        role: 'system',
+                        content: getAttachmentAnalysisInstruction(currentAttachment)
+                    }] : []),
                     ...(promptContext.memory ? [{
                         role: 'system',
                         content: promptContext.memory
@@ -4430,21 +4830,22 @@ Preferred answer style:
                     .slice(-8)
                     .map((msg, index, arr) => {
                         const isLatestAttachment = currentAttachment && msg.role === 'user' && index === arr.length - 1;
-                        const storedAttachment = normalizeAssistantAttachmentMeta(msg.attachment);
-                        const attachmentForMessage = isLatestAttachment
-                            ? currentAttachment
-                            : (storedAttachment?.fileUri ? storedAttachment : null);
+                        const storedAttachments = normalizeAssistantAttachmentList(msg.attachments || msg.attachment);
+                        const attachmentsForMessage = isLatestAttachment
+                            ? normalizeAssistantAttachmentList(currentAttachment)
+                            : storedAttachments.filter(item => item?.fileUri);
                         const parts = [];
                         const text = String(msg.content || '').trim();
                         if (text) parts.push({ text });
-                        if (attachmentForMessage?.fileUri) {
+                        attachmentsForMessage.forEach(attachmentForMessage => {
+                            if (!attachmentForMessage?.fileUri) return;
                             parts.push({
                                 file_data: {
                                     mime_type: attachmentForMessage.mimeType,
                                     file_uri: attachmentForMessage.fileUri
                                 }
                             });
-                        }
+                        });
                         if (!parts.length) return null;
                         return {
                             role: msg.role === 'assistant' ? 'model' : 'user',
@@ -4475,20 +4876,74 @@ Preferred answer style:
                 });
             }
 
+            function loadImageElementFromFile(file) {
+                return new Promise((resolve, reject) => {
+                    const objectUrl = URL.createObjectURL(file);
+                    const image = new Image();
+                    image.onload = () => {
+                        URL.revokeObjectURL(objectUrl);
+                        resolve(image);
+                    };
+                    image.onerror = () => {
+                        URL.revokeObjectURL(objectUrl);
+                        reject(new Error('Could not decode the selected image.'));
+                    };
+                    image.src = objectUrl;
+                });
+            }
+
+            async function normalizeAssistantImageFile(file) {
+                const mimeType = inferAttachmentMimeType(file);
+                if (!mimeType.startsWith('image/')) return file;
+                if (typeof document === 'undefined') return file;
+                try {
+                    const image = await loadImageElementFromFile(file);
+                    const width = Math.max(1, Number(image.naturalWidth || image.width || 0));
+                    const height = Math.max(1, Number(image.naturalHeight || image.height || 0));
+                    if (!width || !height) return file;
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d', { alpha: false });
+                    if (!ctx) return file;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.drawImage(image, 0, 0, width, height);
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    if (!(blob instanceof Blob) || !blob.size) return file;
+                    const baseName = String(file?.name || 'image').replace(/\.[^.]+$/, '');
+                    return new File([blob], `${baseName}.png`, { type: 'image/png' });
+                } catch (err) {
+                    console.warn('Assistant image normalization skipped:', err);
+                    return file;
+                }
+            }
+
             async function prepareAssistantAttachmentForProvider(attachment, provider) {
-                if (!attachment) return null;
-                const cached = attachment.id ? assistantAttachmentCache.get(attachment.id) : null;
-                if (cached && cached.provider === provider) return { ...cached };
+                const attachments = Array.isArray(attachment) ? attachment : normalizeAssistantAttachmentList(attachment);
+                if (!attachments.length) return [];
                 if (provider === 'gemini') {
                     throw new Error('Gemini attachments must be uploaded with an API key.');
                 }
-                if (attachment.kind !== 'image') {
-                    throw new Error('This model only supports image attachments.');
-                }
-                const dataUrl = await readFileAsDataUrl(attachment.file);
-                const prepared = { ...normalizeAssistantAttachmentMeta(attachment), provider, dataUrl };
-                if (attachment.id) assistantAttachmentCache.set(attachment.id, prepared);
-                return prepared;
+                return Promise.all(attachments.map(async item => {
+                    const cached = item.id ? assistantAttachmentCache.get(item.id) : null;
+                    if (cached && cached.provider === provider) return { ...cached };
+                    if (item.kind !== 'image') {
+                        throw new Error('This model only supports image attachments.');
+                    }
+                    const normalizedFile = item.file ? await normalizeAssistantImageFile(item.file) : item.file;
+                    const dataUrl = await readFileAsDataUrl(normalizedFile);
+                    const prepared = {
+                        ...normalizeAssistantAttachmentMeta({
+                            ...item,
+                            mimeType: inferAttachmentMimeType(normalizedFile) || item.mimeType
+                        }),
+                        provider,
+                        dataUrl
+                    };
+                    if (item.id) assistantAttachmentCache.set(item.id, prepared);
+                    return prepared;
+                }));
             }
 
             function startAssistantVoiceInput() {
@@ -4572,24 +5027,31 @@ Preferred answer style:
             }
 
             async function prepareGeminiAttachment(attachment, signal) {
-                const cached = attachment?.id ? assistantAttachmentCache.get(attachment.id) : null;
-                if (cached && cached.provider === 'gemini' && cached.fileUri) return { ...cached };
+                const attachments = Array.isArray(attachment) ? attachment : normalizeAssistantAttachmentList(attachment);
+                if (!attachments.length) return [];
                 const keys = getProviderKeys('gemini');
                 if (!keys.length) throw new Error('Gemini API key required for file analysis.');
-                let lastErr = null;
-                for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-                    try {
-                        const uploaded = await uploadGeminiFileWithKey(attachment.file, keys[keyIndex], signal);
-                        const prepared = {
-                            ...normalizeAssistantAttachmentMeta({ ...attachment, provider: 'gemini', fileUri: uploaded.uri, mimeType: uploaded.mimeType })
-                        };
-                        if (attachment.id) assistantAttachmentCache.set(attachment.id, prepared);
-                        return prepared;
-                    } catch (err) {
-                        lastErr = err;
+                return Promise.all(attachments.map(async item => {
+                    const cached = item?.id ? assistantAttachmentCache.get(item.id) : null;
+                    if (cached && cached.provider === 'gemini' && cached.fileUri) return { ...cached };
+                    let lastErr = null;
+                    for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                        try {
+                            const normalizedFile = item.kind === 'image' && item.file
+                                ? await normalizeAssistantImageFile(item.file)
+                                : item.file;
+                            const uploaded = await uploadGeminiFileWithKey(normalizedFile, keys[keyIndex], signal);
+                            const prepared = {
+                                ...normalizeAssistantAttachmentMeta({ ...item, provider: 'gemini', fileUri: uploaded.uri, mimeType: uploaded.mimeType })
+                            };
+                            if (item.id) assistantAttachmentCache.set(item.id, prepared);
+                            return prepared;
+                        } catch (err) {
+                            lastErr = err;
+                        }
                     }
-                }
-                throw lastErr || new Error('Gemini file upload failed.');
+                    throw lastErr || new Error('Gemini file upload failed.');
+                }));
             }
 
             function extractGeminiText(result) {
@@ -4607,9 +5069,12 @@ Preferred answer style:
                 const keys = getProviderKeys('gemini');
                 if (!keys.length) throw new Error('Gemini API key required for file analysis.');
                 const promptContext = getAssistantPromptContext();
+                const generation = getAssistantGenerationConfig();
+                const attachmentInstruction = getAttachmentAnalysisInstruction(preparedAttachment);
                 let lastErr = null;
                 for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
                     try {
+                        recordGeminiUsage(model);
                         const resp = await fetch(getGeminiGenerateEndpoint(model), {
                             method: 'POST',
                             headers: {
@@ -4618,10 +5083,12 @@ Preferred answer style:
                             },
                             body: JSON.stringify({
                                 system_instruction: {
-                                    parts: [{ text: [promptContext.system, promptContext.memory].filter(Boolean).join('\n\n') }]
+                                    parts: [{ text: [promptContext.system, attachmentInstruction, promptContext.memory].filter(Boolean).join('\n\n') }]
                                 },
                                 generationConfig: {
-                                    temperature: 0.2
+                                    temperature: generation.temperature,
+                                    topP: generation.topP,
+                                    maxOutputTokens: generation.maxTokens
                                 },
                                 contents: buildGeminiAssistantContents(preparedAttachment)
                             }),
@@ -4642,17 +5109,21 @@ Preferred answer style:
             }
 
             async function askAssistant(question) {
-                const pendingAttachment = state.assistant.pendingAttachment && typeof state.assistant.pendingAttachment === 'object'
-                    ? { ...state.assistant.pendingAttachment }
-                    : null;
+                const pendingAttachment = Array.isArray(state.assistant.pendingAttachment)
+                    ? state.assistant.pendingAttachment.map(item => ({ ...item }))
+                    : (state.assistant.pendingAttachment && typeof state.assistant.pendingAttachment === 'object'
+                        ? [{ ...state.assistant.pendingAttachment }]
+                        : []);
                 const text = String(question || '').trim();
-                const modelOption = getActiveAssistantModelOption();
-                const provider = modelOption.provider;
                 const finalText = text || getDefaultAssistantPromptForAttachment(pendingAttachment);
-                if (!finalText && !pendingAttachment) return;
+                const modelOption = getAssistantOptionForRequest(pendingAttachment, finalText);
+                const provider = modelOption.provider;
+                if (!finalText && !pendingAttachment.length) return;
                 if (state.assistant.isListening) stopAssistantVoiceInput();
-                if (pendingAttachment && !canAssistantModelUseAttachment(modelOption, pendingAttachment)) {
-                    toast(modelOption.supportsPdf ? 'Selected model does not support that attachment.' : 'Switch to a Gemini model for PDF uploads.', 'warning', 3400);
+                if (pendingAttachment.length && !canAssistantModelUseAttachment(modelOption, pendingAttachment)) {
+                    toast(modelOption.provider === 'gemini'
+                        ? 'Configured Gemini analysis model does not support that attachment.'
+                        : 'Selected model does not support that attachment.', 'warning', 3400);
                     return;
                 }
                 if (!getProviderKeys(provider).length) {
@@ -4666,8 +5137,8 @@ Preferred answer style:
                 renderAssistantComposer();
                 assistantModelMeta.textContent = `${getAssistantProviderLabel(provider)} | thinking...`;
                 try {
-                    let preparedAttachment = null;
-                    if (pendingAttachment) {
+                    let preparedAttachment = [];
+                    if (pendingAttachment.length) {
                         preparedAttachment = provider === 'gemini'
                             ? await prepareGeminiAttachment(pendingAttachment)
                             : await prepareAssistantAttachmentForProvider(pendingAttachment, provider);
@@ -4675,9 +5146,10 @@ Preferred answer style:
                     setAssistantDraft('');
                     if (assistantInput) assistantInput.value = '';
                     clearAssistantAttachment({ silent: true });
-                    pushAssistantMessage('user', finalText, { attachment: preparedAttachment });
+                    pushAssistantMessage('user', finalText, { attachments: preparedAttachment });
                     assistantModelMeta.textContent = `${getAssistantProviderLabel(provider)} | thinking...`;
                     const model = modelOption.model;
+                    const generation = getAssistantGenerationConfig();
                     let out = '';
                     if (provider === 'gemini') {
                         const result = await requestGeminiAssistantReply(model, preparedAttachment);
@@ -4690,7 +5162,11 @@ Preferred answer style:
                             purpose: 'assistant-chat',
                             buildBody: () => JSON.stringify({
                                 model,
-                                temperature: 0.2,
+                                temperature: generation.temperature,
+                                top_p: generation.topP,
+                                max_tokens: generation.maxTokens,
+                                frequency_penalty: generation.frequencyPenalty,
+                                presence_penalty: generation.presencePenalty,
                                 messages: buildAssistantPromptMessages(preparedAttachment)
                             }),
                             maxRetries: 2,
@@ -4785,6 +5261,35 @@ Preferred answer style:
                     submitAssistantDraft();
                 }
             });
+            ['dragover', 'dragenter'].forEach(evt => {
+                assistantInputWrap?.addEventListener(evt, (e) => {
+                    if (assistantAttachBtn?.disabled) return;
+                    e.preventDefault();
+                    assistantInputWrap.classList.add('drag-over');
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                assistantInputWrap?.addEventListener(evt, () => {
+                    assistantInputWrap.classList.remove('drag-over');
+                });
+            });
+            assistantInputWrap?.addEventListener('drop', (e) => {
+                if (assistantAttachBtn?.disabled) return;
+                e.preventDefault();
+                const files = Array.from(e.dataTransfer?.files || []).filter(Boolean);
+                if (files.length) handleAssistantFileSelection(files);
+            });
+            assistantInput?.addEventListener('paste', (e) => {
+                if (assistantAttachBtn?.disabled) return;
+                const items = Array.from(e.clipboardData?.items || []);
+                const files = items
+                    .filter(item => item.kind === 'file')
+                    .map(item => item.getAsFile())
+                    .filter(Boolean);
+                if (!files.length) return;
+                e.preventDefault();
+                handleAssistantFileSelection(files);
+            });
 
             assistantSend?.addEventListener('click', submitAssistantDraft);
             assistantAttachBtn?.addEventListener('click', () => {
@@ -4794,9 +5299,27 @@ Preferred answer style:
                     assistantFileInput.click();
                 }
             });
+            ['dragover', 'dragenter'].forEach(evt => {
+                assistantAttachBtn?.addEventListener(evt, (e) => {
+                    if (assistantAttachBtn.disabled) return;
+                    e.preventDefault();
+                    assistantAttachBtn.classList.add('drag-over');
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                assistantAttachBtn?.addEventListener(evt, () => {
+                    assistantAttachBtn.classList.remove('drag-over');
+                });
+            });
+            assistantAttachBtn?.addEventListener('drop', (e) => {
+                if (assistantAttachBtn.disabled) return;
+                e.preventDefault();
+                const files = Array.from(e.dataTransfer?.files || []).filter(Boolean);
+                if (files.length) handleAssistantFileSelection(files);
+            });
             assistantFileInput?.addEventListener('change', () => {
-                const file = assistantFileInput.files?.[0];
-                if (file) handleAssistantFileSelection(file);
+                const files = Array.from(assistantFileInput.files || []).filter(Boolean);
+                if (files.length) handleAssistantFileSelection(files);
             });
             assistantAttachmentRemove?.addEventListener('click', () => {
                 clearAssistantAttachment();
@@ -5006,6 +5529,7 @@ Preferred answer style:
             apiKeyVault.value = (state.providerKeys[state.apiProvider] || []).join('\n');
             if (geminiKeyInput) geminiKeyInput.value = state.providerKeys.gemini?.[0] || '';
             if (geminiKeyVault) geminiKeyVault.value = (state.providerKeys.gemini || []).join('\n');
+            populateGeminiModelControls();
             updateVaultMeta();
             if (state.aiOutput) aiOutput.value = state.aiOutput;
             if (outputStyleSelect) outputStyleSelect.value = state.outputStyle || 'default';
@@ -5103,6 +5627,19 @@ Preferred answer style:
             });
 
             geminiKeyTestBtn?.addEventListener('click', testGeminiKey);
+
+            geminiModelSelect?.addEventListener('change', () => {
+                state.geminiAnalysisModel = geminiModelSelect.value || defaultGeminiAnalysisModel();
+                localStorage.setItem('vt_gemini_analysis_model', state.geminiAnalysisModel);
+                populateGeminiModelControls();
+                renderAssistantComposer();
+                toast(`Gemini analysis model set to ${state.geminiAnalysisModel}`, 'success');
+            });
+
+            geminiUsageResetBtn?.addEventListener('click', () => {
+                resetGeminiUsage();
+                toast('Gemini usage meter reset for this model', 'success');
+            });
 
             geminiVaultSaveBtn?.addEventListener('click', () => {
                 const lines = (geminiKeyVault?.value || '').split(/\n+/).map(v => v.trim()).filter(Boolean);
