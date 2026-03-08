@@ -91,6 +91,18 @@
           <button class="api-btn-sm" id="apiKeyTest">Test</button>
         </div>
         <div class="api-row">
+          <span class="api-label">Gemini key</span>
+          <input type="password" class="api-key-input" id="geminiKeyInput" placeholder="Optional for assistant image and PDF analysis" autocomplete="off" spellcheck="false">
+          <button class="api-btn-sm" id="geminiKeyToggle" title="Show Gemini API key">Show</button>
+          <button class="api-btn-sm save-btn" id="geminiKeySave">Save</button>
+          <button class="api-btn-sm" id="geminiKeyTest">Test</button>
+        </div>
+        <div class="api-row" style="align-items:flex-start;">
+          <span class="api-label">Gemini vault</span>
+          <textarea class="api-key-input" id="geminiKeyVault" rows="3" placeholder="Optional Gemini keys - one per line - used only for assistant image and PDF analysis"></textarea>
+          <button class="api-btn-sm save-btn" id="geminiVaultSave">Save vault</button>
+        </div>
+        <div class="api-row">
           <span class="api-label">Audio model</span>
           <input type="text" class="api-key-input" id="audioModelInput" placeholder="Speech model. Groq translation auto-switches to whisper-large-v3">
         </div>
@@ -110,8 +122,10 @@
         <div class="api-note">
           Stored only in your browser's localStorage. Never hardcode real keys inside the HTML when sharing this file.<br>
           Get a free Groq key: <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> |
-          OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a><br>
-          <span id="apiVaultMeta">No extra keys saved</span>
+          OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> |
+          Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a><br>
+          <span id="apiVaultMeta">No extra keys saved</span><br>
+          <span id="geminiVaultMeta">No keys stored for gemini</span>
         </div>
       </div>
     </div>
@@ -241,6 +255,7 @@
               <div class="shortcut"><kbd>Ctrl+C</kbd> Copy text</div>
               <div class="shortcut"><kbd>Ctrl+D</kbd> Download</div>
               <div class="shortcut"><kbd>Ctrl+O</kbd> Open file</div>
+              <div class="shortcut"><kbd>Ctrl+U</kbd> Assistant file</div>
               <div class="shortcut"><kbd>Ctrl+Enter</kbd> Transcribe file</div>
               <div class="shortcut"><kbd>Ctrl+Z</kbd> Recover</div>
             </div>
@@ -599,11 +614,30 @@ qdrant => Qdrant"></textarea>
         <div class="assistant-footer">
           <div class="assistant-input-wrap">
             <textarea class="assistant-input" id="assistantInput" placeholder="Ask anything. Example: What does Quality mode do, or explain ML in simple terms."></textarea>
+            <div class="assistant-attachment-preview" id="assistantAttachmentPreview" hidden>
+              <div class="assistant-attachment-pill">
+                <span class="assistant-attachment-kind" id="assistantAttachmentKind">Image</span>
+                <span class="assistant-attachment-name" id="assistantAttachmentMeta">No file attached</span>
+                <button class="assistant-attachment-close" id="assistantAttachmentRemove" type="button" aria-label="Remove attached file">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
             <div class="assistant-footer-row">
               <div class="assistant-meta" id="assistantModelMeta">Groq-first assistant</div>
               <select id="assistantModelSelect" class="assistant-model-select" aria-label="Assistant model">
                 <option value="">Loading models...</option>
               </select>
+              <input type="file" id="assistantFileInput" hidden accept="image/png,image/jpeg,image/webp">
+              <button class="assistant-attach-btn" id="assistantAttachBtn" type="button" aria-label="Add photos and files" title="Add photos and files">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.9-9.9a4 4 0 1 1 5.66 5.66l-10 10a2 2 0 0 1-2.83-2.83l8.84-8.84"></path>
+                </svg>
+                <span class="assistant-attach-label">Add photos & files</span>
+              </button>
               <button class="assistant-mic-btn" id="assistantMicBtn" type="button" aria-label="Start voice input" title="Voice input (English)">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V6a3 3 0 0 1 3-3z"></path>
@@ -617,7 +651,7 @@ qdrant => Qdrant"></textarea>
               </button>
             </div>
           </div>
-          <div class="assistant-note">Uses your current provider and chat model. It can answer general questions and also help with this Verba workspace.</div>
+          <div class="assistant-note">Uses the assistant model you pick below. Groq vision models handle images, and Gemini handles images plus PDFs.</div>
         </div>
       </div>
       <div class="assistant-dock">
@@ -695,8 +729,8 @@ qdrant => Qdrant"></textarea>
                 audioModel: localStorage.getItem('vt_audio_model') || '',
                 chatModel: localStorage.getItem('vt_chat_model') || '',
                 providerKeys: (() => {
-                    try { return JSON.parse(localStorage.getItem('vt_provider_keys') || '{\"groq\":[],\"openai\":[]}'); }
-                    catch (e) { return { groq: [], openai: [] }; }
+                    try { return normalizeProviderKeyStore(JSON.parse(localStorage.getItem('vt_provider_keys') || '{}')); }
+                    catch (e) { return normalizeProviderKeyStore({}); }
                 })(),
                 preset: localStorage.getItem('vt_preset') || 'dictation',
                 glossaryRaw: localStorage.getItem('vt_glossary') || 'hpcl => HPCL\nn8n => n8n\nqdrant => Qdrant',
@@ -732,7 +766,9 @@ qdrant => Qdrant"></textarea>
                     isSending: false,
                     isListening: false,
                     unread: 0,
+                    model: localStorage.getItem('vt_assistant_model') || '',
                     draft: sessionStorage.getItem('vt_assistant_draft') || '',
+                    pendingAttachment: null,
                     currentConversationId: localStorage.getItem('vt_assistant_current') || '',
                     conversations: (() => {
                         try {
@@ -766,6 +802,9 @@ qdrant => Qdrant"></textarea>
                 workspaceSaveTimer: null,
             };
 
+            const ASSISTANT_ATTACHMENT_MAX_BYTES = 20 * 1024 * 1024;
+            const assistantAttachmentCache = new Map();
+            let assistantAttachmentSeq = 0;
             const AUTO_COPY_DELAY = 4000;
             const MEMORY_IMPORT_PROMPT = [
                 "Export all of my stored memories and any context you've learned about me from past conversations. Preserve my words verbatim where possible, especially for instructions and preferences.",
@@ -861,6 +900,12 @@ qdrant => Qdrant"></textarea>
             const apiNote = apiPanel.querySelector('.api-note');
             const apiKeyInput = $('apiKeyInput');
             const apiKeyToggleBtn = $('apiKeyToggle');
+            const geminiKeyInput = $('geminiKeyInput');
+            const geminiKeyVault = $('geminiKeyVault');
+            const geminiKeyToggleBtn = $('geminiKeyToggle');
+            const geminiKeySaveBtn = $('geminiKeySave');
+            const geminiKeyTestBtn = $('geminiKeyTest');
+            const geminiVaultSaveBtn = $('geminiVaultSave');
             const apiProvider = $('apiProvider');
             const apiStatusDot = $('apiStatusDot');
             const apiStatusLabel = $('apiStatusLabel');
@@ -881,6 +926,7 @@ qdrant => Qdrant"></textarea>
             const chatModelSuggestions = $('chatModelSuggestions');
             const apiKeyVault = $('apiKeyVault');
             let apiVaultMeta = $('apiVaultMeta');
+            let geminiVaultMeta = $('geminiVaultMeta');
             const memoryStatusChip = $('memoryStatusChip');
             const memoryPackSelect = $('memoryPackSelect');
             const memoryPackNameInput = $('memoryPackNameInput');
@@ -911,6 +957,12 @@ qdrant => Qdrant"></textarea>
             const assistantRuntimeMeta = $('assistantRuntimeMeta');
             const assistantModelMeta = $('assistantModelMeta');
             const assistantModelSelect = $('assistantModelSelect');
+            const assistantFileInput = $('assistantFileInput');
+            const assistantAttachBtn = $('assistantAttachBtn');
+            const assistantAttachmentPreview = $('assistantAttachmentPreview');
+            const assistantAttachmentKind = $('assistantAttachmentKind');
+            const assistantAttachmentMeta = $('assistantAttachmentMeta');
+            const assistantAttachmentRemove = $('assistantAttachmentRemove');
             const assistantMicBtn = $('assistantMicBtn');
             const assistantHistoryPanel = $('assistantHistoryPanel');
             const assistantHistoryList = $('assistantHistoryList');
@@ -930,15 +982,19 @@ qdrant => Qdrant"></textarea>
             audioModelInput.placeholder = 'Speech model. Groq translation auto-switches to whisper-large-v3';
             chatModelInput.placeholder = 'Groq recommendation: openai/gpt-oss-120b';
             populateChatModelControls();
+            populateAssistantModelControls();
             if (apiNote) {
                 apiNote.innerHTML = `
       Stored only in your browser localStorage. Keep shared copies of this HTML free of real keys.<br>
       Groq-first defaults: transcription whisper-large-v3-turbo, translation whisper-large-v3, AI cleanup openai/gpt-oss-120b, fast fallback openai/gpt-oss-20b.<br>
       Groq keys: <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a> |
-      OpenAI fallback: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a><br>
-      <span id="apiVaultMeta">No extra keys saved</span>
+      OpenAI fallback: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a> |
+      Gemini assistant files: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a><br>
+      <span id="apiVaultMeta">No extra keys saved</span><br>
+      <span id="geminiVaultMeta">No keys stored for gemini</span>
     `;
                 apiVaultMeta = $('apiVaultMeta');
+                geminiVaultMeta = $('geminiVaultMeta');
             }
 
             function syncApiKeyToggleButton() {
@@ -947,6 +1003,14 @@ qdrant => Qdrant"></textarea>
                 apiKeyToggleBtn.textContent = showing ? 'Hide' : 'Show';
                 apiKeyToggleBtn.title = showing ? 'Hide API key' : 'Show API key';
                 apiKeyToggleBtn.setAttribute('aria-label', showing ? 'Hide API key' : 'Show API key');
+            }
+
+            function syncGeminiKeyToggleButton() {
+                if (!geminiKeyInput || !geminiKeyToggleBtn) return;
+                const showing = geminiKeyInput.type === 'text';
+                geminiKeyToggleBtn.textContent = showing ? 'Hide' : 'Show';
+                geminiKeyToggleBtn.title = showing ? 'Hide Gemini API key' : 'Show Gemini API key';
+                geminiKeyToggleBtn.setAttribute('aria-label', showing ? 'Hide Gemini API key' : 'Show Gemini API key');
             }
 
             function isTouchPrimary() {
@@ -1738,6 +1802,37 @@ qdrant => Qdrant"></textarea>
                     toast('Connection failed: ' + e.message, 'error');
                 }
                 updateTranscribeBtn();
+            }
+
+            async function testGeminiKey() {
+                if (!getProviderKeys('gemini').length) { toast('Enter a Gemini key first', 'warning'); return; }
+                try {
+                    const resp = await fetch(getGeminiGenerateEndpoint('gemini-2.5-flash'), {
+                        method: 'POST',
+                        headers: {
+                            'x-goog-api-key': getProviderKeys('gemini')[0],
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                role: 'user',
+                                parts: [{ text: 'Reply with OK only.' }]
+                            }]
+                        })
+                    });
+                    const raw = await resp.text().catch(() => '');
+                    const payload = safeJsonParse(raw, null);
+                    if (!resp.ok) throw new Error(payload?.error?.message || payload?.message || raw || `Gemini test failed (${resp.status})`);
+                    const btn = geminiKeyTestBtn;
+                    if (btn) {
+                        btn.classList.add('saved');
+                        btn.textContent = 'Ready';
+                        setTimeout(() => { btn.classList.remove('saved'); btn.textContent = 'Test'; }, 1500);
+                    }
+                    toast('Gemini key valid', 'success');
+                } catch (e) {
+                    toast('Gemini connection failed: ' + e.message, 'error');
+                }
             }
 
             async function transcribeBlob(blob, options = {}) {
@@ -2913,12 +3008,178 @@ qdrant => Qdrant"></textarea>
                 try { return JSON.parse(text); } catch (e) { return fallback; }
             }
 
+            function normalizeProviderKeyStore(rawStore) {
+                const store = rawStore && typeof rawStore === 'object' ? rawStore : {};
+                const normalizeList = value => Array.isArray(value)
+                    ? [...new Set(value.map(v => String(v || '').trim()).filter(Boolean))]
+                    : [];
+                return {
+                    groq: normalizeList(store.groq),
+                    openai: normalizeList(store.openai),
+                    gemini: normalizeList(store.gemini)
+                };
+            }
+
             function defaultAudioModel(provider) {
                 return provider === 'groq' ? 'whisper-large-v3-turbo' : 'whisper-1';
             }
 
             function defaultChatModel(provider) {
                 return provider === 'groq' ? 'openai/gpt-oss-120b' : 'gpt-4o-mini';
+            }
+
+            function defaultAssistantModelId() {
+                return 'groq:meta-llama/llama-4-scout-17b-16e-instruct';
+            }
+
+            function getAssistantModelCatalog() {
+                return [
+                    {
+                        id: 'groq:meta-llama/llama-4-scout-17b-16e-instruct',
+                        provider: 'groq',
+                        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                        label: 'Groq - Llama 4 Scout',
+                        meta: 'Images + OCR',
+                        supportsImages: true,
+                        supportsPdf: false
+                    },
+                    {
+                        id: 'groq:meta-llama/llama-4-maverick-17b-128e-instruct',
+                        provider: 'groq',
+                        model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
+                        label: 'Groq - Llama 4 Maverick',
+                        meta: 'Images + higher quality',
+                        supportsImages: true,
+                        supportsPdf: false
+                    },
+                    {
+                        id: 'groq:openai/gpt-oss-120b',
+                        provider: 'groq',
+                        model: 'openai/gpt-oss-120b',
+                        label: 'Groq - GPT OSS 120B',
+                        meta: 'Text only',
+                        supportsImages: false,
+                        supportsPdf: false
+                    },
+                    {
+                        id: 'groq:openai/gpt-oss-20b',
+                        provider: 'groq',
+                        model: 'openai/gpt-oss-20b',
+                        label: 'Groq - GPT OSS 20B',
+                        meta: 'Fast text',
+                        supportsImages: false,
+                        supportsPdf: false
+                    },
+                    {
+                        id: 'gemini:gemini-2.5-flash',
+                        provider: 'gemini',
+                        model: 'gemini-2.5-flash',
+                        label: 'Gemini 2.5 Flash',
+                        meta: 'Images + PDFs',
+                        supportsImages: true,
+                        supportsPdf: true
+                    },
+                    {
+                        id: 'gemini:gemini-2.5-pro',
+                        provider: 'gemini',
+                        model: 'gemini-2.5-pro',
+                        label: 'Gemini 2.5 Pro',
+                        meta: 'Higher quality multimodal',
+                        supportsImages: true,
+                        supportsPdf: true
+                    },
+                    {
+                        id: 'openai:gpt-4o-mini',
+                        provider: 'openai',
+                        model: 'gpt-4o-mini',
+                        label: 'OpenAI - GPT-4o Mini',
+                        meta: 'Text fallback',
+                        supportsImages: false,
+                        supportsPdf: false
+                    }
+                ];
+            }
+
+            function getAssistantProviderLabel(provider) {
+                if (provider === 'gemini') return 'Gemini';
+                if (provider === 'openai') return 'OpenAI';
+                return 'Groq';
+            }
+
+            function getAssistantModelOption(id = state.assistant.model) {
+                const catalog = getAssistantModelCatalog();
+                return catalog.find(item => item.id === id) || catalog[0];
+            }
+
+            function getActiveAssistantModelOption() {
+                return getAssistantModelOption(state.assistant.model);
+            }
+
+            function getActiveAssistantProvider() {
+                return getActiveAssistantModelOption().provider;
+            }
+
+            function getActiveAssistantModel() {
+                return getActiveAssistantModelOption().model;
+            }
+
+            function assistantAttachmentAccept(option = getActiveAssistantModelOption()) {
+                if (!option) return '';
+                if (option.supportsPdf) return 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
+                if (option.supportsImages) return 'image/png,image/jpeg,image/webp';
+                return '';
+            }
+
+            function attachmentKindFromMimeType(mimeType = '') {
+                return String(mimeType || '').toLowerCase() === 'application/pdf' ? 'pdf' : 'image';
+            }
+
+            function inferAttachmentMimeType(file) {
+                const type = String(file?.type || '').trim().toLowerCase();
+                if (type) return type;
+                const name = String(file?.name || '').toLowerCase();
+                if (name.endsWith('.pdf')) return 'application/pdf';
+                if (name.endsWith('.png')) return 'image/png';
+                if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+                if (name.endsWith('.webp')) return 'image/webp';
+                return '';
+            }
+
+            function canAssistantModelUseAttachment(option, attachment) {
+                if (!option || !attachment) return true;
+                const kind = attachment.kind || attachmentKindFromMimeType(attachment.mimeType);
+                if (kind === 'pdf') return !!option.supportsPdf;
+                return !!option.supportsImages;
+            }
+
+            function setAssistantModel(value, options = {}) {
+                const next = getAssistantModelOption(value);
+                state.assistant.model = next.id;
+                localStorage.setItem('vt_assistant_model', state.assistant.model);
+                if (!options.skipAttachmentCheck && state.assistant.pendingAttachment && !canAssistantModelUseAttachment(next, state.assistant.pendingAttachment)) {
+                    clearAssistantAttachment({ silent: true });
+                    toast(next.supportsPdf
+                        ? 'Pending attachment cleared because the selected model changed.'
+                        : 'Selected model does not support the pending attachment. Attachment cleared.', 'info', 3200);
+                }
+                if (!options.skipRender) renderAssistantComposer();
+            }
+
+            function populateAssistantModelControls() {
+                const catalog = getAssistantModelCatalog();
+                const recommended = getAssistantModelOption(defaultAssistantModelId());
+                const optionMarkup = [
+                    `<option value="${recommended.id}">Recommended - ${recommended.label}</option>`,
+                    ...catalog
+                        .filter(item => item.id !== recommended.id)
+                        .map(item => `<option value="${item.id}">${item.label} - ${item.meta}</option>`)
+                ].join('');
+                if (assistantModelSelect) assistantModelSelect.innerHTML = optionMarkup;
+                if (!state.assistant.model || !catalog.some(item => item.id === state.assistant.model)) {
+                    state.assistant.model = recommended.id;
+                    localStorage.setItem('vt_assistant_model', state.assistant.model);
+                }
+                if (assistantModelSelect) assistantModelSelect.value = state.assistant.model;
             }
 
             function getChatModelCatalog(provider) {
@@ -2994,32 +3255,48 @@ qdrant => Qdrant"></textarea>
                 return getApiModel();
             }
 
-            function getProviderKeys() {
-                const vault = Array.isArray(state.providerKeys?.[state.apiProvider]) ? state.providerKeys[state.apiProvider].filter(Boolean) : [];
-                const apiKey = (state.apiKey || '').trim();
+            function getProviderKeys(provider = state.apiProvider) {
+                state.providerKeys = normalizeProviderKeyStore(state.providerKeys);
+                const vault = Array.isArray(state.providerKeys?.[provider]) ? state.providerKeys[provider].filter(Boolean) : [];
+                const apiKey = provider === state.apiProvider ? (state.apiKey || '').trim() : '';
                 if (apiKey && !vault.includes(apiKey)) return [apiKey, ...vault];
                 return vault;
             }
 
-            function getAudioEndpoint(kind = 'transcriptions') {
-                return state.apiProvider === 'groq'
+            function getAudioEndpoint(kind = 'transcriptions', provider = state.apiProvider) {
+                return provider === 'groq'
                     ? `https://api.groq.com/openai/v1/audio/${kind}`
                     : `https://api.openai.com/v1/audio/${kind}`;
             }
 
-            function getChatEndpoint() {
-                return state.apiProvider === 'groq'
+            function getChatEndpoint(provider = state.apiProvider) {
+                return provider === 'groq'
                     ? 'https://api.groq.com/openai/v1/chat/completions'
                     : 'https://api.openai.com/v1/chat/completions';
             }
 
+            function getGeminiGenerateEndpoint(model) {
+                return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+            }
+
+            function getGeminiUploadEndpoint() {
+                return 'https://generativelanguage.googleapis.com/upload/v1beta/files';
+            }
+
             function persistProviderStore() {
-                localStorage.setItem('vt_provider_keys', JSON.stringify(state.providerKeys || { groq: [], openai: [] }));
+                state.providerKeys = normalizeProviderKeyStore(state.providerKeys);
+                localStorage.setItem('vt_provider_keys', JSON.stringify(state.providerKeys || { groq: [], openai: [], gemini: [] }));
+            }
+
+            function updateProviderVaultMeta(provider, element) {
+                if (!element) return;
+                const count = (state.providerKeys?.[provider] || []).filter(Boolean).length;
+                element.textContent = count ? `${count} key${count > 1 ? 's' : ''} stored for ${provider}` : `No keys stored for ${provider}`;
             }
 
             function updateVaultMeta() {
-                const count = (state.providerKeys?.[state.apiProvider] || []).filter(Boolean).length;
-                apiVaultMeta.textContent = count ? `${count} key${count > 1 ? 's' : ''} stored for ${state.apiProvider}` : `No keys stored for ${state.apiProvider}`;
+                updateProviderVaultMeta(state.apiProvider, apiVaultMeta);
+                updateProviderVaultMeta('gemini', geminiVaultMeta);
             }
 
             function setCacheStatus(message) {
@@ -3327,25 +3604,38 @@ qdrant => Qdrant"></textarea>
                 return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
             }
 
-            async function providerRequest({ url, buildBody, responseType = 'json', signal, purpose = 'request', maxRetries = 2 }) {
-                const keys = getProviderKeys();
-                if (!keys.length) throw new Error('No API key configured');
+            async function requestWithProvider({
+                provider = state.apiProvider,
+                url,
+                buildBody,
+                responseType = 'json',
+                signal,
+                purpose = 'request',
+                maxRetries = 2,
+                extraHeaders = null,
+                syncPrimaryKey = provider === state.apiProvider
+            }) {
+                const keys = getProviderKeys(provider);
+                if (!keys.length) throw new Error(provider === 'gemini' ? 'No Gemini API key configured' : 'No API key configured');
                 let lastErr = null;
                 for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
                     const apiKey = keys[keyIndex];
                     for (let attempt = 0; attempt <= maxRetries; attempt++) {
                         let body = buildBody();
-                        const headers = { 'Authorization': 'Bearer ' + apiKey };
+                        const headers = provider === 'gemini'
+                            ? { 'x-goog-api-key': apiKey }
+                            : { 'Authorization': 'Bearer ' + apiKey };
+                        if (extraHeaders) Object.assign(headers, extraHeaders);
                         if (typeof body === 'string') headers['Content-Type'] = 'application/json';
                         try {
                             const resp = await fetch(url, { method: 'POST', headers, body, signal });
                             if (resp.ok) {
-                                if (apiKey !== state.apiKey) {
+                                if (syncPrimaryKey && provider === state.apiProvider && apiKey !== state.apiKey) {
                                     state.apiKey = apiKey;
                                     localStorage.setItem('vt_api_key', apiKey);
                                     apiKeyInput.value = apiKey;
                                 }
-                                const diagPatch = { provider: state.apiProvider, retries: attempt, cacheKey: state.cacheKey || '' };
+                                const diagPatch = { provider, retries: attempt, cacheKey: state.cacheKey || '' };
                                 if (purpose === 'transcribe-audio') {
                                     diagPatch.audioModel = getEffectiveAudioModel({ translate: false });
                                     diagPatch.audioTask = 'transcribe';
@@ -3357,27 +3647,41 @@ qdrant => Qdrant"></textarea>
                                     diagPatch.audioTask = 'api-test';
                                 }
                                 updateDiagnostics(diagPatch, `${purpose} success via key ${keyIndex + 1}`);
+                                if (responseType === 'response') return resp;
                                 return responseType === 'json' ? await resp.json() : await resp.text();
                             }
-                            const err = await resp.json().catch(async () => ({ error: { message: await resp.text().catch(() => `API error ${resp.status}`) } }));
-                            const message = err?.error?.message || `API error ${resp.status}`;
+                            const rawError = await resp.text().catch(() => '');
+                            const err = safeJsonParse(rawError, null);
+                            const message = err?.error?.message || err?.message || rawError || `API error ${resp.status}`;
                             const retryable = resp.status === 429 || resp.status >= 500;
                             lastErr = new Error(message);
                             if (!retryable || attempt >= maxRetries) break;
                             const wait = Math.min(4000, 500 * Math.pow(2, attempt)) + Math.floor(Math.random() * 200);
-                            updateDiagnostics({ retries: attempt + 1 }, `${purpose} retry ${attempt + 1} after ${resp.status}`);
+                            updateDiagnostics({ provider, retries: attempt + 1 }, `${purpose} retry ${attempt + 1} after ${resp.status}`);
                             await new Promise(r => setTimeout(r, wait));
                         } catch (err) {
                             lastErr = err;
                             if (signal?.aborted) throw err;
                             if (attempt >= maxRetries) break;
                             const wait = Math.min(4000, 500 * Math.pow(2, attempt)) + Math.floor(Math.random() * 200);
-                            updateDiagnostics({ retries: attempt + 1 }, `${purpose} network retry ${attempt + 1}`);
+                            updateDiagnostics({ provider, retries: attempt + 1 }, `${purpose} network retry ${attempt + 1}`);
                             await new Promise(r => setTimeout(r, wait));
                         }
                     }
                 }
                 throw lastErr || new Error('Provider request failed');
+            }
+
+            async function providerRequest({ url, buildBody, responseType = 'json', signal, purpose = 'request', maxRetries = 2 }) {
+                return requestWithProvider({
+                    provider: state.apiProvider,
+                    url,
+                    buildBody,
+                    responseType,
+                    signal,
+                    purpose,
+                    maxRetries
+                });
             }
 
             async function callChatModel(task, rawText, { button } = {}) {
@@ -3602,7 +3906,7 @@ Key controls and tools:
 - Advanced transcript tools include glossary apply, local cleanup, redaction, workspace save/export/import, and cache clear.
 - AI Output includes AI Clean, Summary, Action Items, and Prompt Pack.
 - Exports include TXT, SRT, VTT, JSON, Markdown, CSV, and Workspace JSON.
-- Keyboard shortcuts include Space, Ctrl+C, Ctrl+D, Ctrl+O, Ctrl+Enter, Ctrl+Z, Ctrl+Delete, Ctrl+Shift+Q, and Ctrl+Shift+P.
+- Keyboard shortcuts include Space, Ctrl+C, Ctrl+D, Ctrl+O, Ctrl+U, Ctrl+Enter, Ctrl+Z, Ctrl+Delete, Ctrl+Shift+Q, and Ctrl+Shift+P.
 
 Preferred answer style:
 - concise
@@ -3616,7 +3920,8 @@ Preferred answer style:
             function getAssistantRuntimeSummary() {
                 return [
                     `mode=${state.mode}`,
-                    `provider=${state.apiProvider}`,
+                    `audio_provider=${state.apiProvider}`,
+                    `assistant_provider=${getActiveAssistantProvider()}`,
                     `language=${langSelect.value || 'auto'}`,
                     `smart_punctuation=${state.smartPunctEnabled ? 'on' : 'off'}`,
                     `auto_copy=${state.autoCopyEnabled ? 'on' : 'off'}`,
@@ -3634,14 +3939,57 @@ Preferred answer style:
                     `segments=${String(state.segments?.length || 0)}`,
                     `cache=${state.diagnostics?.cacheHit ? 'hit' : (state.cacheKey ? 'ready' : 'idle')}`,
                     `audio_model=${getEffectiveAudioModel({ translate: !!$('optTranslate')?.checked })}`,
-                    `chat_model=${getActiveChatModel()}`
+                    `chat_model=${getActiveChatModel()}`,
+                    `assistant_model=${getActiveAssistantModel()}`
                 ].join('\n');
+            }
+
+            function normalizeAssistantAttachmentMeta(raw) {
+                if (!raw || typeof raw !== 'object') return null;
+                const name = String(raw.name || '').trim();
+                if (!name) return null;
+                const mimeType = inferAttachmentMimeType(raw) || String(raw.mimeType || '').trim() || 'application/octet-stream';
+                const kind = raw.kind === 'pdf' || mimeType === 'application/pdf' ? 'pdf' : 'image';
+                const meta = {
+                    id: String(raw.id || ''),
+                    kind,
+                    name,
+                    mimeType,
+                    size: Math.max(0, Number(raw.size || 0) || 0),
+                    provider: String(raw.provider || '')
+                };
+                if (raw.fileUri) meta.fileUri = String(raw.fileUri);
+                return meta;
+            }
+
+            function cloneAssistantMessage(msg) {
+                const attachment = normalizeAssistantAttachmentMeta(msg?.attachment);
+                return {
+                    role: msg?.role === 'user' ? 'user' : 'assistant',
+                    content: String(msg?.content || '').trim(),
+                    ts: Number(msg?.ts || Date.now()),
+                    ...(attachment ? { attachment } : {})
+                };
+            }
+
+            function createAssistantMessage(role, content, extras = {}) {
+                const cleaned = role === 'assistant'
+                    ? normalizeAssistantText(content)
+                    : String(content || '').trim();
+                const message = {
+                    role: role === 'user' ? 'user' : 'assistant',
+                    content: cleaned,
+                    ts: Number(extras.ts || Date.now())
+                };
+                const attachment = normalizeAssistantAttachmentMeta(extras.attachment);
+                if (attachment) message.attachment = attachment;
+                return message;
             }
 
             function createAssistantConversation(seedMessages = null, seedTitle = 'New chat') {
                 const now = Date.now();
                 const messages = Array.isArray(seedMessages) && seedMessages.length
-                    ? seedMessages.map(msg => ({ ...msg }))
+                    ? seedMessages.map(msg => cloneAssistantMessage(msg))
                     : [getAssistantWelcomeMessage()];
                 return {
                     id: `chat_${now}_${Math.random().toString(36).slice(2, 8)}`,
@@ -3664,11 +4012,7 @@ Preferred answer style:
                 const messages = Array.isArray(conv?.messages) && conv.messages.length
                     ? conv.messages
                         .filter(Boolean)
-                        .map((msg, msgIndex) => ({
-                            role: msg?.role === 'user' ? 'user' : 'assistant',
-                            content: String(msg?.content || '').trim(),
-                            ts: Number(msg?.ts || (now + msgIndex))
-                        }))
+                        .map((msg, msgIndex) => cloneAssistantMessage({ ...msg, ts: Number(msg?.ts || (now + msgIndex)) }))
                     : [getAssistantWelcomeMessage()];
                 return {
                     id: String(conv?.id || `chat_${now}_${index}`),
@@ -3684,14 +4028,20 @@ Preferred answer style:
             }
 
             function persistAssistantConversations() {
-                localStorage.setItem('vt_assistant_conversations', JSON.stringify(state.assistant.conversations || []));
+                const serialized = Array.isArray(state.assistant.conversations)
+                    ? state.assistant.conversations.map(conv => ({
+                        ...conv,
+                        messages: Array.isArray(conv?.messages) ? conv.messages.map(msg => cloneAssistantMessage(msg)) : [getAssistantWelcomeMessage()]
+                    }))
+                    : [];
+                localStorage.setItem('vt_assistant_conversations', JSON.stringify(serialized));
                 localStorage.setItem('vt_assistant_current', state.assistant.currentConversationId || '');
             }
 
             function syncAssistantMessagesFromCurrentConversation() {
                 const current = getCurrentAssistantConversation();
-                state.assistant.messages = current?.messages?.map(msg => ({ ...msg })) || [getAssistantWelcomeMessage()];
-                localStorage.setItem('vt_assistant_thread', JSON.stringify(state.assistant.messages || []));
+                state.assistant.messages = current?.messages?.map(msg => cloneAssistantMessage(msg)) || [getAssistantWelcomeMessage()];
+                localStorage.setItem('vt_assistant_thread', JSON.stringify((state.assistant.messages || []).map(msg => cloneAssistantMessage(msg))));
             }
 
             function ensureAssistantConversationStore() {
@@ -3718,12 +4068,12 @@ Preferred answer style:
                 const current = getCurrentAssistantConversation();
                 if (current) {
                     current.messages = Array.isArray(state.assistant.messages)
-                        ? state.assistant.messages.map(msg => ({ ...msg }))
+                        ? state.assistant.messages.map(msg => cloneAssistantMessage(msg))
                         : [getAssistantWelcomeMessage()];
                     current.title = deriveAssistantConversationTitle(current.messages);
                     current.updatedAt = Date.now();
                 }
-                localStorage.setItem('vt_assistant_thread', JSON.stringify(state.assistant.messages || []));
+                localStorage.setItem('vt_assistant_thread', JSON.stringify((state.assistant.messages || []).map(msg => cloneAssistantMessage(msg))));
                 persistAssistantConversations();
             }
 
@@ -3754,11 +4104,10 @@ Preferred answer style:
             }
 
             function getAssistantWelcomeMessage() {
-                return {
-                    role: 'assistant',
-                    content: 'I can help with this Verba workspace and also answer general questions. Ask about models, prompts, coding, writing, exports, recording flow, or anything else you need.',
-                    ts: Date.now()
-                };
+                return createAssistantMessage(
+                    'assistant',
+                    'I can help with this Verba workspace and also answer general questions. Ask about models, prompts, coding, writing, exports, recording flow, or anything else you need.'
+                );
             }
 
             function ensureAssistantThread() {
@@ -3780,6 +4129,93 @@ Preferred answer style:
                     .replace(/[ \t]{2,}/g, ' ')
                     .replace(/\n{3,}/g, '\n\n')
                     .trim();
+            }
+
+            function describeAssistantAttachment(meta) {
+                const attachment = normalizeAssistantAttachmentMeta(meta);
+                if (!attachment) return '';
+                const size = attachment.size ? ` - ${formatFileSize(attachment.size)}` : '';
+                return `${attachment.name}${size}`;
+            }
+
+            function getDefaultAssistantPromptForAttachment(attachment) {
+                if (!attachment) return '';
+                return attachment.kind === 'pdf'
+                    ? 'Please analyze this PDF and summarize the important content.'
+                    : 'Please analyze this image and extract the important details and any readable text.';
+            }
+
+            function clearAssistantAttachment(options = {}) {
+                state.assistant.pendingAttachment = null;
+                if (assistantFileInput) assistantFileInput.value = '';
+                if (!options.silent) renderAssistantComposer();
+            }
+
+            function renderAssistantComposer() {
+                const modelOption = getActiveAssistantModelOption();
+                const pendingAttachment = normalizeAssistantAttachmentMeta(state.assistant.pendingAttachment);
+                const draftValue = String(assistantInput?.value || state.assistant.draft || '').trim();
+                const providerLabel = getAssistantProviderLabel(modelOption.provider);
+                const capabilityLabel = modelOption.supportsPdf
+                    ? 'Images + PDFs'
+                    : modelOption.supportsImages
+                        ? 'Images'
+                        : 'Text only';
+
+                if (assistantModelSelect) assistantModelSelect.value = modelOption.id;
+                if (assistantModelMeta) assistantModelMeta.textContent = `${providerLabel} | ${modelOption.label.replace(/^.+? - /, '')} | ${capabilityLabel}`;
+                if (assistantFileInput) assistantFileInput.accept = assistantAttachmentAccept(modelOption);
+                if (assistantAttachmentPreview) assistantAttachmentPreview.hidden = !pendingAttachment;
+                if (assistantAttachmentKind && pendingAttachment) assistantAttachmentKind.textContent = pendingAttachment.kind === 'pdf' ? 'PDF' : 'Image';
+                if (assistantAttachmentMeta && pendingAttachment) assistantAttachmentMeta.textContent = describeAssistantAttachment(pendingAttachment);
+                if (assistantAttachBtn) {
+                    const canAttach = !!(modelOption.supportsImages || modelOption.supportsPdf);
+                    assistantAttachBtn.disabled = !canAttach || !!state.assistant.isSending;
+                    assistantAttachBtn.title = !canAttach
+                        ? `${providerLabel} ${modelOption.label.replace(/^.+? - /, '')} is text only`
+                        : modelOption.supportsPdf
+                            ? 'Add photos & files'
+                            : 'Add photos. Switch to Gemini for PDFs';
+                    assistantAttachBtn.setAttribute('aria-label', assistantAttachBtn.title);
+                }
+                if (assistantMicBtn) {
+                    const supported = !!assistantRecognition;
+                    assistantMicBtn.disabled = !supported || !!state.assistant.isSending;
+                    assistantMicBtn.classList.toggle('listening', !!state.assistant.isListening);
+                    assistantMicBtn.setAttribute('aria-pressed', state.assistant.isListening ? 'true' : 'false');
+                    assistantMicBtn.setAttribute('aria-label', state.assistant.isListening ? 'Stop voice input' : 'Start voice input');
+                    assistantMicBtn.title = !supported
+                        ? 'Voice input is not supported in this browser'
+                        : state.assistant.isListening
+                            ? 'Stop voice input'
+                            : 'Voice input (English)';
+                }
+                if (assistantSend) assistantSend.disabled = !!state.assistant.isSending || (!draftValue && !pendingAttachment);
+            }
+
+            async function handleAssistantFileSelection(file) {
+                if (!file) return;
+                const mimeType = inferAttachmentMimeType(file);
+                if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf'].includes(mimeType)) {
+                    toast('Only PNG, JPG, WEBP, and PDF files are supported in the assistant.', 'warning', 3600);
+                    return;
+                }
+                if ((file.size || 0) > ASSISTANT_ATTACHMENT_MAX_BYTES) {
+                    toast(`Assistant attachments are limited to ${formatFileSize(ASSISTANT_ATTACHMENT_MAX_BYTES)}.`, 'warning', 3600);
+                    return;
+                }
+                const meta = { ...buildAssistantAttachmentMeta(file), file };
+                if (meta.kind === 'pdf' && !getActiveAssistantModelOption().supportsPdf) {
+                    setAssistantModel('gemini:gemini-2.5-flash', { skipAttachmentCheck: true });
+                    toast('Switched assistant to Gemini 2.5 Flash for PDF support.', 'info', 3200);
+                }
+                if (!canAssistantModelUseAttachment(getActiveAssistantModelOption(), meta)) {
+                    toast('The selected assistant model does not support that file type.', 'warning', 3200);
+                    return;
+                }
+                state.assistant.pendingAttachment = meta;
+                renderAssistantComposer();
+                if (assistantInput) assistantInput.focus();
             }
 
             function getLastAssistantReply() {
@@ -3853,6 +4289,7 @@ Preferred answer style:
                 syncAssistantMessagesFromCurrentConversation();
                 persistAssistantConversations();
                 persistAssistantUi();
+                clearAssistantAttachment({ silent: true });
                 renderAssistantMessages();
                 setAssistantDraft('');
                 if (assistantInput) assistantInput.value = '';
@@ -3872,6 +4309,7 @@ Preferred answer style:
                 syncAssistantMessagesFromCurrentConversation();
                 persistAssistantConversations();
                 persistAssistantUi();
+                clearAssistantAttachment({ silent: true });
                 renderAssistantMessages();
             }
 
@@ -3882,10 +4320,14 @@ Preferred answer style:
                     const displayText = role === 'assistant'
                         ? normalizeAssistantText(msg.content || '')
                         : String(msg.content || '');
+                    const attachment = normalizeAssistantAttachmentMeta(msg.attachment);
+                    const attachmentMarkup = attachment
+                        ? `<div class="assistant-message-attachment"><span class="assistant-message-attachment-kind">${escapeHtml(attachment.kind === 'pdf' ? 'PDF' : 'Image')}</span><span class="assistant-message-attachment-name">${escapeHtml(describeAssistantAttachment(attachment))}</span></div>`
+                        : '';
                     return `
       <div class="assistant-message ${role}">
         ${role === 'assistant' ? '<div class="assistant-avatar-dot" aria-hidden="true"></div>' : ''}
-        <div class="assistant-bubble">${assistantEscapedHtml(displayText)}</div>
+        <div class="assistant-bubble">${attachmentMarkup}${assistantEscapedHtml(displayText)}</div>
       </div>`;
                 }).join('');
                 assistantEmpty.style.display = msgs.length ? 'none' : '';
@@ -3893,23 +4335,9 @@ Preferred answer style:
                 const unread = Number(state.assistant.unread || 0);
                 assistantUnread.textContent = unread > 9 ? '9+' : String(unread);
                 assistantUnread.classList.toggle('visible', unread > 0);
-                assistantRuntimeMeta.textContent = `${state.mode} mode | ${state.apiProvider.toUpperCase()} ready | ${getActiveMemoryPack()?.name || 'Primary'} memory | ${state.outputStyle || 'default'} style`;
-                assistantModelMeta.textContent = `${state.apiProvider.toUpperCase()} | ${getActiveChatModel()}`;
-                syncChatModelSelectors();
+                assistantRuntimeMeta.textContent = `${state.mode} mode | audio ${state.apiProvider.toUpperCase()} ready | assistant ${getAssistantProviderLabel(getActiveAssistantProvider())} | ${getActiveMemoryPack()?.name || 'Primary'} memory`;
+                renderAssistantComposer();
                 renderAssistantHistoryList();
-                assistantSend.disabled = !!state.assistant.isSending;
-                if (assistantMicBtn) {
-                    const supported = !!assistantRecognition;
-                    assistantMicBtn.disabled = !supported || !!state.assistant.isSending;
-                    assistantMicBtn.classList.toggle('listening', !!state.assistant.isListening);
-                    assistantMicBtn.setAttribute('aria-pressed', state.assistant.isListening ? 'true' : 'false');
-                    assistantMicBtn.setAttribute('aria-label', state.assistant.isListening ? 'Stop voice input' : 'Start voice input');
-                    assistantMicBtn.title = !supported
-                        ? 'Voice input is not supported in this browser'
-                        : state.assistant.isListening
-                            ? 'Stop voice input'
-                            : 'Voice input (English)';
-                }
                 assistantLauncher.classList.toggle('open', !!state.assistant.isOpen);
                 assistantShell.classList.toggle('open', !!state.assistant.isOpen);
                 assistantShell.classList.toggle('maximized', !!state.assistant.maximized);
@@ -3947,32 +4375,120 @@ Preferred answer style:
                 renderAssistantMessages();
             }
 
-            function pushAssistantMessage(role, content) {
-                const cleaned = role === 'assistant'
-                    ? normalizeAssistantText(content)
-                    : String(content || '').trim();
-                state.assistant.messages.push({ role, content: cleaned, ts: Date.now() });
+            function pushAssistantMessage(role, content, extras = {}) {
+                const message = createAssistantMessage(role, content, extras);
+                state.assistant.messages.push(message);
                 persistAssistantThread();
                 renderAssistantMessages();
+                return message;
             }
 
-            function buildAssistantPromptMessages(question) {
+            function getAssistantPromptContext() {
+                const importedMemory = getImportedMemoryContext({ maxChars: 7000 });
+                return {
+                    system: `You are Verba Assistant.\n${ASSISTANT_KB}\n\nCurrent runtime state:\n${getAssistantRuntimeSummary()}\n\nPreferred output style:\n${getOutputStyleInstruction()}`,
+                    memory: importedMemory
+                        ? `Use the imported user memory below as long-term context for preferences, projects, terminology, and stable background facts. Do not let it override transcript text or current runtime state when they conflict.\n\n${importedMemory}`
+                        : ''
+                };
+            }
+
+            function buildAssistantPromptMessages(currentAttachment = null) {
                 const thread = (state.assistant.messages || [])
                     .filter(msg => msg && (msg.role === 'user' || msg.role === 'assistant'))
                     .slice(-8)
-                    .map(msg => ({ role: msg.role, content: String(msg.content || '') }));
-                const importedMemory = getImportedMemoryContext({ maxChars: 7000 });
+                    .map((msg, index, arr) => {
+                        const isLatestAttachment = currentAttachment && msg.role === 'user' && index === arr.length - 1;
+                        if (isLatestAttachment && currentAttachment?.dataUrl) {
+                            return {
+                                role: msg.role,
+                                content: [
+                                    { type: 'text', text: String(msg.content || getDefaultAssistantPromptForAttachment(currentAttachment)) },
+                                    { type: 'image_url', image_url: { url: currentAttachment.dataUrl } }
+                                ]
+                            };
+                        }
+                        return { role: msg.role, content: String(msg.content || '') };
+                    });
+                const promptContext = getAssistantPromptContext();
                 return [
                     {
                         role: 'system',
-                        content: `You are Verba Assistant.\n${ASSISTANT_KB}\n\nCurrent runtime state:\n${getAssistantRuntimeSummary()}\n\nPreferred output style:\n${getOutputStyleInstruction()}`
+                        content: promptContext.system
                     },
-                    ...(importedMemory ? [{
+                    ...(promptContext.memory ? [{
                         role: 'system',
-                        content: `Use the imported user memory below as long-term context for preferences, projects, terminology, and stable background facts. Do not let it override transcript text or current runtime state when they conflict.\n\n${importedMemory}`
+                        content: promptContext.memory
                     }] : []),
                     ...thread
                 ];
+            }
+
+            function buildGeminiAssistantContents(currentAttachment = null) {
+                return (state.assistant.messages || [])
+                    .filter(msg => msg && (msg.role === 'user' || msg.role === 'assistant'))
+                    .slice(-8)
+                    .map((msg, index, arr) => {
+                        const isLatestAttachment = currentAttachment && msg.role === 'user' && index === arr.length - 1;
+                        const storedAttachment = normalizeAssistantAttachmentMeta(msg.attachment);
+                        const attachmentForMessage = isLatestAttachment
+                            ? currentAttachment
+                            : (storedAttachment?.fileUri ? storedAttachment : null);
+                        const parts = [];
+                        const text = String(msg.content || '').trim();
+                        if (text) parts.push({ text });
+                        if (attachmentForMessage?.fileUri) {
+                            parts.push({
+                                file_data: {
+                                    mime_type: attachmentForMessage.mimeType,
+                                    file_uri: attachmentForMessage.fileUri
+                                }
+                            });
+                        }
+                        if (!parts.length) return null;
+                        return {
+                            role: msg.role === 'assistant' ? 'model' : 'user',
+                            parts
+                        };
+                    })
+                    .filter(Boolean);
+            }
+
+            function buildAssistantAttachmentMeta(file, provider = '') {
+                const mimeType = inferAttachmentMimeType(file);
+                return {
+                    id: `assistant_att_${Date.now()}_${++assistantAttachmentSeq}`,
+                    name: String(file?.name || 'attachment'),
+                    size: Math.max(0, Number(file?.size || 0) || 0),
+                    mimeType,
+                    kind: attachmentKindFromMimeType(mimeType),
+                    provider
+                };
+            }
+
+            function readFileAsDataUrl(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(String(reader.result || ''));
+                    reader.onerror = () => reject(new Error('Could not read the selected file.'));
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async function prepareAssistantAttachmentForProvider(attachment, provider) {
+                if (!attachment) return null;
+                const cached = attachment.id ? assistantAttachmentCache.get(attachment.id) : null;
+                if (cached && cached.provider === provider) return { ...cached };
+                if (provider === 'gemini') {
+                    throw new Error('Gemini attachments must be uploaded with an API key.');
+                }
+                if (attachment.kind !== 'image') {
+                    throw new Error('This model only supports image attachments.');
+                }
+                const dataUrl = await readFileAsDataUrl(attachment.file);
+                const prepared = { ...normalizeAssistantAttachmentMeta(attachment), provider, dataUrl };
+                if (attachment.id) assistantAttachmentCache.set(attachment.id, prepared);
+                return prepared;
             }
 
             function startAssistantVoiceInput() {
@@ -4009,41 +4525,186 @@ Preferred answer style:
                 renderAssistantMessages();
             }
 
+            async function uploadGeminiFileWithKey(file, apiKey, signal) {
+                const mimeType = inferAttachmentMimeType(file) || 'application/octet-stream';
+                const startResp = await fetch(getGeminiUploadEndpoint(), {
+                    method: 'POST',
+                    headers: {
+                        'x-goog-api-key': apiKey,
+                        'X-Goog-Upload-Protocol': 'resumable',
+                        'X-Goog-Upload-Command': 'start',
+                        'X-Goog-Upload-Header-Content-Length': String(file.size || 0),
+                        'X-Goog-Upload-Header-Content-Type': mimeType,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({}),
+                    signal
+                });
+                if (!startResp.ok) {
+                    const raw = await startResp.text().catch(() => '');
+                    const err = safeJsonParse(raw, null);
+                    throw new Error(err?.error?.message || err?.message || raw || `Gemini upload failed (${startResp.status})`);
+                }
+                const uploadUrl = startResp.headers.get('x-goog-upload-url');
+                if (!uploadUrl) throw new Error('Gemini upload URL was not returned.');
+                const uploadResp = await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-Goog-Upload-Command': 'upload, finalize',
+                        'X-Goog-Upload-Offset': '0',
+                        'Content-Type': mimeType
+                    },
+                    body: file,
+                    signal
+                });
+                const raw = await uploadResp.text().catch(() => '');
+                const payload = safeJsonParse(raw, null);
+                if (!uploadResp.ok) {
+                    throw new Error(payload?.error?.message || payload?.message || raw || `Gemini upload failed (${uploadResp.status})`);
+                }
+                const uploaded = payload?.file || payload;
+                if (!uploaded?.uri) throw new Error('Gemini did not return a usable file reference.');
+                return {
+                    uri: String(uploaded.uri),
+                    mimeType: String(uploaded.mimeType || mimeType),
+                    displayName: String(uploaded.displayName || file.name || 'attachment')
+                };
+            }
+
+            async function prepareGeminiAttachment(attachment, signal) {
+                const cached = attachment?.id ? assistantAttachmentCache.get(attachment.id) : null;
+                if (cached && cached.provider === 'gemini' && cached.fileUri) return { ...cached };
+                const keys = getProviderKeys('gemini');
+                if (!keys.length) throw new Error('Gemini API key required for file analysis.');
+                let lastErr = null;
+                for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                    try {
+                        const uploaded = await uploadGeminiFileWithKey(attachment.file, keys[keyIndex], signal);
+                        const prepared = {
+                            ...normalizeAssistantAttachmentMeta({ ...attachment, provider: 'gemini', fileUri: uploaded.uri, mimeType: uploaded.mimeType })
+                        };
+                        if (attachment.id) assistantAttachmentCache.set(attachment.id, prepared);
+                        return prepared;
+                    } catch (err) {
+                        lastErr = err;
+                    }
+                }
+                throw lastErr || new Error('Gemini file upload failed.');
+            }
+
+            function extractGeminiText(result) {
+                const parts = Array.isArray(result?.candidates?.[0]?.content?.parts)
+                    ? result.candidates[0].content.parts
+                    : [];
+                return parts
+                    .map(part => String(part?.text || '').trim())
+                    .filter(Boolean)
+                    .join('\n\n')
+                    .trim();
+            }
+
+            async function requestGeminiAssistantReply(model, preparedAttachment, signal) {
+                const keys = getProviderKeys('gemini');
+                if (!keys.length) throw new Error('Gemini API key required for file analysis.');
+                const promptContext = getAssistantPromptContext();
+                let lastErr = null;
+                for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                    try {
+                        const resp = await fetch(getGeminiGenerateEndpoint(model), {
+                            method: 'POST',
+                            headers: {
+                                'x-goog-api-key': keys[keyIndex],
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                system_instruction: {
+                                    parts: [{ text: [promptContext.system, promptContext.memory].filter(Boolean).join('\n\n') }]
+                                },
+                                generationConfig: {
+                                    temperature: 0.2
+                                },
+                                contents: buildGeminiAssistantContents(preparedAttachment)
+                            }),
+                            signal
+                        });
+                        const raw = await resp.text().catch(() => '');
+                        const payload = safeJsonParse(raw, null);
+                        if (!resp.ok) {
+                            throw new Error(payload?.error?.message || payload?.message || raw || `Gemini request failed (${resp.status})`);
+                        }
+                        updateDiagnostics({ provider: 'gemini', chatModel: model }, `assistant-chat success via Gemini key ${keyIndex + 1}`);
+                        return payload;
+                    } catch (err) {
+                        lastErr = err;
+                    }
+                }
+                throw lastErr || new Error('Gemini assistant request failed.');
+            }
+
             async function askAssistant(question) {
+                const pendingAttachment = state.assistant.pendingAttachment && typeof state.assistant.pendingAttachment === 'object'
+                    ? { ...state.assistant.pendingAttachment }
+                    : null;
                 const text = String(question || '').trim();
-                if (!text) return;
+                const modelOption = getActiveAssistantModelOption();
+                const provider = modelOption.provider;
+                const finalText = text || getDefaultAssistantPromptForAttachment(pendingAttachment);
+                if (!finalText && !pendingAttachment) return;
                 if (state.assistant.isListening) stopAssistantVoiceInput();
-                if (!getProviderKeys().length) {
-                    pushAssistantMessage('assistant', 'API key required. Open API Configuration, save a Groq or OpenAI key, then ask again.');
-                    toast('Assistant needs an API key', 'warning');
+                if (pendingAttachment && !canAssistantModelUseAttachment(modelOption, pendingAttachment)) {
+                    toast(modelOption.supportsPdf ? 'Selected model does not support that attachment.' : 'Switch to a Gemini model for PDF uploads.', 'warning', 3400);
                     return;
                 }
-                pushAssistantMessage('user', text);
+                if (!getProviderKeys(provider).length) {
+                    pushAssistantMessage('assistant', provider === 'gemini'
+                        ? 'Gemini API key required. Open API Configuration, save a Gemini key, then try the file or image again.'
+                        : `API key required for ${getAssistantProviderLabel(provider)}. Open API Configuration, save a key, then ask again.`);
+                    toast(`${getAssistantProviderLabel(provider)} key required`, 'warning');
+                    return;
+                }
                 state.assistant.isSending = true;
-                assistantSend.disabled = true;
-                assistantModelMeta.textContent = `${state.apiProvider.toUpperCase()} | thinking...`;
+                renderAssistantComposer();
+                assistantModelMeta.textContent = `${getAssistantProviderLabel(provider)} | thinking...`;
                 try {
-                    const model = getActiveChatModel();
-                    const result = await providerRequest({
-                        url: getChatEndpoint(),
-                        responseType: 'json',
-                        purpose: 'assistant-chat',
-                        buildBody: () => JSON.stringify({
-                            model,
-                            temperature: 0.2,
-                            messages: buildAssistantPromptMessages(text)
-                        }),
-                        maxRetries: 2
-                    });
-                    const out = normalizeAssistantText(result?.choices?.[0]?.message?.content || '');
+                    let preparedAttachment = null;
+                    if (pendingAttachment) {
+                        preparedAttachment = provider === 'gemini'
+                            ? await prepareGeminiAttachment(pendingAttachment)
+                            : await prepareAssistantAttachmentForProvider(pendingAttachment, provider);
+                    }
+                    setAssistantDraft('');
+                    if (assistantInput) assistantInput.value = '';
+                    clearAssistantAttachment({ silent: true });
+                    pushAssistantMessage('user', finalText, { attachment: preparedAttachment });
+                    assistantModelMeta.textContent = `${getAssistantProviderLabel(provider)} | thinking...`;
+                    const model = modelOption.model;
+                    let out = '';
+                    if (provider === 'gemini') {
+                        const result = await requestGeminiAssistantReply(model, preparedAttachment);
+                        out = normalizeAssistantText(extractGeminiText(result));
+                    } else {
+                        const result = await requestWithProvider({
+                            provider,
+                            url: getChatEndpoint(provider),
+                            responseType: 'json',
+                            purpose: 'assistant-chat',
+                            buildBody: () => JSON.stringify({
+                                model,
+                                temperature: 0.2,
+                                messages: buildAssistantPromptMessages(preparedAttachment)
+                            }),
+                            maxRetries: 2,
+                            syncPrimaryKey: provider === state.apiProvider
+                        });
+                        out = normalizeAssistantText(result?.choices?.[0]?.message?.content || '');
+                    }
                     pushAssistantMessage('assistant', out || 'I could not generate a grounded answer for that app question.');
-                    updateDiagnostics({ chatModel: model }, 'assistant reply ready');
+                    updateDiagnostics({ provider, chatModel: model }, 'assistant reply ready');
                     if (!state.assistant.isOpen) state.assistant.unread = Math.min(9, Number(state.assistant.unread || 0) + 1);
                 } catch (err) {
                     pushAssistantMessage('assistant', `Assistant error: ${err.message || 'request failed'}`);
                 } finally {
                     state.assistant.isSending = false;
-                    assistantSend.disabled = false;
                     persistAssistantUi();
                     renderAssistantMessages();
                 }
@@ -4109,24 +4770,37 @@ Preferred answer style:
                 }, { passive: true });
             })();
 
-            assistantInput?.addEventListener('input', () => setAssistantDraft(assistantInput.value));
+            function submitAssistantDraft() {
+                if (state.assistant.isSending) return;
+                askAssistant(assistantInput?.value || '');
+            }
+
+            assistantInput?.addEventListener('input', () => {
+                setAssistantDraft(assistantInput.value);
+                renderAssistantComposer();
+            });
             assistantInput?.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    const value = assistantInput.value.trim();
-                    if (!value || state.assistant.isSending) return;
-                    setAssistantDraft('');
-                    assistantInput.value = '';
-                    askAssistant(value);
+                    submitAssistantDraft();
                 }
             });
 
-            assistantSend?.addEventListener('click', () => {
-                const value = assistantInput.value.trim();
-                if (!value || state.assistant.isSending) return;
-                setAssistantDraft('');
-                assistantInput.value = '';
-                askAssistant(value);
+            assistantSend?.addEventListener('click', submitAssistantDraft);
+            assistantAttachBtn?.addEventListener('click', () => {
+                if (assistantAttachBtn.disabled) return;
+                if (assistantFileInput) {
+                    assistantFileInput.value = '';
+                    assistantFileInput.click();
+                }
+            });
+            assistantFileInput?.addEventListener('change', () => {
+                const file = assistantFileInput.files?.[0];
+                if (file) handleAssistantFileSelection(file);
+            });
+            assistantAttachmentRemove?.addEventListener('click', () => {
+                clearAssistantAttachment();
+                toast('Attachment removed', 'info');
             });
             assistantMicBtn?.addEventListener('click', () => {
                 if (state.assistant.isListening) {
@@ -4175,6 +4849,7 @@ Preferred answer style:
             assistantCloseBtn?.addEventListener('click', () => setAssistantOpen(false));
             assistantClearBtn?.addEventListener('click', () => {
                 state.assistant.messages = [getAssistantWelcomeMessage()];
+                clearAssistantAttachment({ silent: true });
                 persistAssistantThread();
                 renderAssistantMessages();
                 toast('Assistant thread cleared', 'info');
@@ -4194,9 +4869,8 @@ Preferred answer style:
                     if (!state.assistant.isOpen) setAssistantOpen(true);
                     setAssistantDraft(prompt);
                     assistantInput.value = prompt;
+                    renderAssistantComposer();
                     askAssistant(prompt);
-                    setAssistantDraft('');
-                    assistantInput.value = '';
                 });
             });
 
@@ -4330,11 +5004,15 @@ Preferred answer style:
             speakerModeToggle.classList.toggle('on', state.speakerMode);
             autosaveToggle.classList.toggle('on', state.autosaveEnabled);
             apiKeyVault.value = (state.providerKeys[state.apiProvider] || []).join('\n');
+            if (geminiKeyInput) geminiKeyInput.value = state.providerKeys.gemini?.[0] || '';
+            if (geminiKeyVault) geminiKeyVault.value = (state.providerKeys.gemini || []).join('\n');
             updateVaultMeta();
             if (state.aiOutput) aiOutput.value = state.aiOutput;
             if (outputStyleSelect) outputStyleSelect.value = state.outputStyle || 'default';
             renderMemoryUi();
             setMemoryToolsOpen(false);
+            const activeProviderPrimaryKey = state.providerKeys[state.apiProvider]?.[0] || state.apiKey || '';
+            state.apiKey = activeProviderPrimaryKey;
             if (state.apiKey) {
                 apiKeyInput.value = state.apiKey;
                 apiStatusDot.className = 'api-status-dot connected';
@@ -4342,6 +5020,7 @@ Preferred answer style:
                 state.apiConnected = true;
             }
             syncApiKeyToggleButton();
+            syncGeminiKeyToggleButton();
 
             apiProvider.addEventListener('change', () => {
                 const previousProvider = state.apiProvider;
@@ -4359,6 +5038,9 @@ Preferred answer style:
                     ? 'Groq recommendation: openai/gpt-oss-120b'
                     : 'OpenAI recommendation: gpt-4o-mini';
                 populateChatModelControls();
+                state.apiKey = state.providerKeys[state.apiProvider]?.[0] || '';
+                localStorage.setItem('vt_api_key', state.apiKey);
+                apiKeyInput.value = state.apiKey;
                 apiKeyVault.value = (state.providerKeys[state.apiProvider] || []).join('\n');
                 updateVaultMeta();
                 state.apiConnected = false;
@@ -4371,6 +5053,11 @@ Preferred answer style:
             $('apiKeySave').addEventListener('click', () => {
                 state.apiKey = apiKeyInput.value.trim();
                 localStorage.setItem('vt_api_key', state.apiKey);
+                const providerKeys = (state.providerKeys[state.apiProvider] || []).filter(Boolean).filter(key => key !== state.apiKey);
+                state.providerKeys[state.apiProvider] = state.apiKey ? [state.apiKey, ...providerKeys] : providerKeys;
+                persistProviderStore();
+                apiKeyVault.value = (state.providerKeys[state.apiProvider] || []).join('\n');
+                updateVaultMeta();
                 if (state.apiKey) {
                     apiStatusLabel.textContent = 'Key saved';
                     apiStatusDot.className = 'api-status-dot connected';
@@ -4392,6 +5079,41 @@ Preferred answer style:
             });
 
             $('apiKeyTest').addEventListener('click', testApiKey);
+
+            geminiKeySaveBtn?.addEventListener('click', () => {
+                const next = String(geminiKeyInput?.value || '').trim();
+                const existing = (state.providerKeys.gemini || []).filter(Boolean).filter(key => key !== next);
+                state.providerKeys.gemini = next ? [next, ...existing] : existing;
+                persistProviderStore();
+                if (geminiKeyInput) geminiKeyInput.value = state.providerKeys.gemini?.[0] || '';
+                if (geminiKeyVault) geminiKeyVault.value = (state.providerKeys.gemini || []).join('\n');
+                updateVaultMeta();
+                if (geminiKeySaveBtn) {
+                    geminiKeySaveBtn.classList.add('saved');
+                    geminiKeySaveBtn.textContent = next ? 'Saved' : 'Cleared';
+                    setTimeout(() => { geminiKeySaveBtn.classList.remove('saved'); geminiKeySaveBtn.textContent = 'Save'; }, 1500);
+                }
+                toast(next ? 'Gemini key saved locally' : 'Gemini key cleared', 'success');
+                renderAssistantComposer();
+            });
+
+            geminiKeyToggleBtn?.addEventListener('click', () => {
+                geminiKeyInput.type = geminiKeyInput.type === 'password' ? 'text' : 'password';
+                syncGeminiKeyToggleButton();
+            });
+
+            geminiKeyTestBtn?.addEventListener('click', testGeminiKey);
+
+            geminiVaultSaveBtn?.addEventListener('click', () => {
+                const lines = (geminiKeyVault?.value || '').split(/\n+/).map(v => v.trim()).filter(Boolean);
+                state.providerKeys.gemini = [...new Set(lines)];
+                persistProviderStore();
+                if (geminiKeyInput) geminiKeyInput.value = state.providerKeys.gemini?.[0] || '';
+                if (geminiKeyVault) geminiKeyVault.value = (state.providerKeys.gemini || []).join('\n');
+                updateVaultMeta();
+                toast('Gemini key vault saved locally', 'success');
+                renderAssistantComposer();
+            });
 
             $('apiVaultSave').addEventListener('click', () => {
                 const lines = (apiKeyVault.value || '').split(/\n+/).map(v => v.trim()).filter(Boolean);
@@ -4423,14 +5145,7 @@ Preferred answer style:
             });
 
             assistantModelSelect?.addEventListener('change', () => {
-                if (assistantModelSelect.value === '__custom__') {
-                    if (!state.assistant.isOpen) setAssistantOpen(true);
-                    chatModelInput.focus();
-                    chatModelInput.select();
-                    syncChatModelSelectors();
-                    return;
-                }
-                setChatModel(assistantModelSelect.value);
+                setAssistantModel(assistantModelSelect.value);
             });
 
             memoryInput?.addEventListener('input', () => {
@@ -5232,6 +5947,15 @@ Preferred answer style:
                     fileInput.click();
                 }
 
+                // Ctrl+U: attach assistant file
+                if (e.ctrlKey && e.key.toLowerCase() === 'u' && state.assistant?.isOpen) {
+                    e.preventDefault();
+                    if (!assistantAttachBtn?.disabled) {
+                        assistantFileInput.value = '';
+                        assistantFileInput.click();
+                    }
+                }
+
                 // Ctrl+Enter: transcribe file
                 if (e.ctrlKey && e.key === 'Enter') {
                     e.preventDefault();
@@ -5295,6 +6019,7 @@ Preferred answer style:
             setCaptureSource(state.captureSource, { silent: true });
             setMode(state.mode || 'realtime', { silent: true });
             ensureAssistantThread();
+            setAssistantModel(state.assistant.model || defaultAssistantModelId(), { skipRender: true, skipAttachmentCheck: true });
             state.assistant.ui = sanitizeAssistantUiState(state.assistant.ui);
             state.assistant.unread = state.assistant.ui.unread;
             state.assistant.maximized = false;
