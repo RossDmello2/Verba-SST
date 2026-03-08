@@ -694,7 +694,7 @@ qdrant => Qdrant"></textarea>
               <select id="assistantModelSelect" class="assistant-model-select" aria-label="Assistant model">
                 <option value="">Loading models...</option>
               </select>
-              <input type="file" id="assistantFileInput" hidden multiple accept="image/png,image/jpeg,image/webp">
+              <input type="file" id="assistantFileInput" hidden multiple accept="image/png,image/jpeg,image/webp,application/pdf,.pdf,text/plain,.txt,text/markdown,.md,text/csv,.csv,application/json,.json">
               <button class="assistant-attach-btn" id="assistantAttachBtn" type="button" aria-label="Add photos and files" title="Add photos and files">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.9-9.9a4 4 0 1 1 5.66 5.66l-10 10a2 2 0 0 1-2.83-2.83l8.84-8.84"></path>
@@ -714,7 +714,7 @@ qdrant => Qdrant"></textarea>
               </button>
             </div>
           </div>
-          <div class="assistant-note">Uses the assistant model you pick below for chat. Image and PDF analysis can route through the Gemini model set in API Configuration.</div>
+          <div class="assistant-note">Uses the assistant model you pick below for chat. Image, PDF, and file analysis can route through the Gemini model set in API Configuration.</div>
         </div>
       </div>
       <div class="assistant-dock">
@@ -3388,16 +3388,20 @@ qdrant => Qdrant"></textarea>
             }
 
             function assistantAttachmentAccept(option = getActiveAssistantModelOption()) {
+                const textAccept = 'text/plain,.txt,text/markdown,.md,text/csv,.csv,application/json,.json';
                 const activeOption = option || getActiveAssistantModelOption();
-                if (getProviderKeys('gemini').length) return 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
-                if (!activeOption) return '';
-                if (activeOption.supportsPdf) return 'image/png,image/jpeg,image/webp,application/pdf,.pdf';
-                if (activeOption.supportsImages) return 'image/png,image/jpeg,image/webp';
-                return '';
+                if (getProviderKeys('gemini').length) return `image/png,image/jpeg,image/webp,application/pdf,.pdf,${textAccept}`;
+                if (!activeOption) return textAccept;
+                if (activeOption.supportsPdf) return `image/png,image/jpeg,image/webp,application/pdf,.pdf,${textAccept}`;
+                if (activeOption.supportsImages) return `image/png,image/jpeg,image/webp,${textAccept}`;
+                return textAccept;
             }
 
             function attachmentKindFromMimeType(mimeType = '') {
-                return String(mimeType || '').toLowerCase() === 'application/pdf' ? 'pdf' : 'image';
+                const normalized = String(mimeType || '').toLowerCase();
+                if (normalized === 'application/pdf') return 'pdf';
+                if (normalized.startsWith('image/')) return 'image';
+                return 'text';
             }
 
             function inferAttachmentMimeType(file) {
@@ -3408,6 +3412,10 @@ qdrant => Qdrant"></textarea>
                 if (name.endsWith('.png')) return 'image/png';
                 if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
                 if (name.endsWith('.webp')) return 'image/webp';
+                if (name.endsWith('.md')) return 'text/markdown';
+                if (name.endsWith('.txt')) return 'text/plain';
+                if (name.endsWith('.csv')) return 'text/csv';
+                if (name.endsWith('.json')) return 'application/json';
                 return '';
             }
 
@@ -3415,7 +3423,9 @@ qdrant => Qdrant"></textarea>
                 const attachments = normalizeAssistantAttachmentList(attachment);
                 if (!option || !attachments.length) return true;
                 const hasPdf = attachments.some(item => item.kind === 'pdf');
+                const hasText = attachments.some(item => item.kind === 'text');
                 if (hasPdf) return !!option.supportsPdf;
+                if (hasText) return true;
                 return !!option.supportsImages;
             }
 
@@ -4246,7 +4256,8 @@ Preferred answer style:
                 const name = String(raw.name || '').trim();
                 if (!name) return null;
                 const mimeType = inferAttachmentMimeType(raw) || String(raw.mimeType || '').trim() || 'application/octet-stream';
-                const kind = raw.kind === 'pdf' || mimeType === 'application/pdf' ? 'pdf' : 'image';
+                const kind = raw.kind
+                    || (mimeType === 'application/pdf' ? 'pdf' : (mimeType.startsWith('image/') ? 'image' : 'text'));
                 const meta = {
                     id: String(raw.id || ''),
                     kind,
@@ -4256,6 +4267,9 @@ Preferred answer style:
                     provider: String(raw.provider || '')
                 };
                 if (raw.fileUri) meta.fileUri = String(raw.fileUri);
+                if (raw.fileName) meta.fileName = String(raw.fileName);
+                if (raw.uploadedAt) meta.uploadedAt = Number(raw.uploadedAt || 0) || 0;
+                if (raw.textContent) meta.textContent = String(raw.textContent);
                 return meta;
             }
 
@@ -4267,6 +4281,13 @@ Preferred answer style:
                 }
                 const fromSingle = normalizeAssistantAttachmentMeta(raw);
                 return fromSingle ? [fromSingle] : [];
+            }
+
+            function canReuseGeminiFileReference(attachment) {
+                if (!attachment?.fileUri) return false;
+                const uploadedAt = Number(attachment?.uploadedAt || 0);
+                if (!uploadedAt) return false;
+                return Date.now() - uploadedAt < (25 * 60 * 1000);
             }
 
             function cloneAssistantMessage(msg) {
@@ -4450,10 +4471,12 @@ Preferred answer style:
                 if (!attachments.length) return '';
                 if (attachments.length === 1) return describeAssistantAttachment(attachments[0]);
                 const pdfCount = attachments.filter(item => item.kind === 'pdf').length;
-                const imageCount = attachments.length - pdfCount;
+                const imageCount = attachments.filter(item => item.kind === 'image').length;
+                const textCount = attachments.filter(item => item.kind === 'text').length;
                 const parts = [];
                 if (imageCount) parts.push(`${imageCount} image${imageCount === 1 ? '' : 's'}`);
                 if (pdfCount) parts.push(`${pdfCount} PDF${pdfCount === 1 ? '' : 's'}`);
+                if (textCount) parts.push(`${textCount} text file${textCount === 1 ? '' : 's'}`);
                 return `${parts.join(' + ')} attached`;
             }
 
@@ -4461,8 +4484,11 @@ Preferred answer style:
                 const attachments = normalizeAssistantAttachmentList(attachment);
                 if (!attachments.length) return '';
                 const hasPdf = attachments.some(item => item.kind === 'pdf');
+                const hasText = attachments.some(item => item.kind === 'text');
                 return hasPdf
                     ? 'Please analyze this PDF and summarize the important content.'
+                    : hasText
+                        ? 'Please analyze these attached files and summarize the important content.'
                     : attachments.length > 1
                         ? 'Please analyze these images and extract the important details and any readable text.'
                         : 'Please analyze this image and extract the important details and any readable text.';
@@ -4498,21 +4524,24 @@ Preferred answer style:
                 if (assistantAttachmentPreview) assistantAttachmentPreview.hidden = !pendingAttachments.length;
                 if (assistantAttachmentKind && pendingAttachments.length) {
                     const hasPdf = pendingAttachments.some(item => item.kind === 'pdf');
+                    const hasText = pendingAttachments.some(item => item.kind === 'text');
                     assistantAttachmentKind.textContent = pendingAttachments.length > 1
                         ? `${pendingAttachments.length} files`
-                        : (hasPdf ? 'PDF' : 'Image');
+                        : (hasPdf ? 'PDF' : (hasText ? 'File' : 'Image'));
                 }
                 if (assistantAttachmentMeta && pendingAttachments.length) assistantAttachmentMeta.textContent = describeAssistantAttachmentList(pendingAttachments);
                 if (assistantAttachBtn) {
-                    const canAttach = !!(modelOption.supportsImages || modelOption.supportsPdf || getProviderKeys('gemini').length);
-                    assistantAttachBtn.disabled = !canAttach || !!state.assistant.isSending;
+                    const canAttach = !state.assistant.isSending;
+                    assistantAttachBtn.disabled = !canAttach;
                     assistantAttachBtn.title = !canAttach
-                        ? `${providerLabel} ${modelOption.label.replace(/^.+? - /, '')} is text only`
+                        ? 'Wait for the current assistant request to finish'
                         : getProviderKeys('gemini').length
-                            ? `Add photos & files. Gemini analysis model: ${getConfiguredGeminiAnalysisModel()}`
+                            ? `Add photos, PDFs, and files. Gemini analysis model: ${getConfiguredGeminiAnalysisModel()}`
                         : modelOption.supportsPdf
-                            ? 'Add photos & files'
-                            : 'Add photos. Switch to Gemini for PDFs';
+                            ? 'Add photos, PDFs, and files'
+                            : modelOption.supportsImages
+                                ? 'Add photos and files. Switch to Gemini for PDFs'
+                                : 'Add files';
                     assistantAttachBtn.setAttribute('aria-label', assistantAttachBtn.title);
                 }
                 if (assistantMicBtn) {
@@ -4551,8 +4580,8 @@ Preferred answer style:
                 const nextAttachments = [...existing];
                 for (const file of files) {
                     const mimeType = inferAttachmentMimeType(file);
-                    if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf'].includes(mimeType)) {
-                        toast('Only PNG, JPG, WEBP, and PDF files are supported in the assistant.', 'warning', 3600);
+                    if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf', 'text/plain', 'text/markdown', 'text/csv', 'application/json'].includes(mimeType)) {
+                        toast('Supported assistant files: PNG, JPG, JPEG, WEBP, PDF, TXT, MD, CSV, JSON.', 'warning', 3600);
                         return;
                     }
                     if ((file.size || 0) > ASSISTANT_ATTACHMENT_MAX_BYTES) {
@@ -4678,7 +4707,7 @@ Preferred answer style:
                         : String(msg.content || '');
                     const attachments = normalizeAssistantAttachmentList(msg.attachments || msg.attachment);
                     const attachmentMarkup = attachments.length
-                        ? attachments.map(attachment => `<div class="assistant-message-attachment"><span class="assistant-message-attachment-kind">${escapeHtml(attachment.kind === 'pdf' ? 'PDF' : 'Image')}</span><span class="assistant-message-attachment-name">${escapeHtml(describeAssistantAttachment(attachment))}</span></div>`).join('')
+                        ? attachments.map(attachment => `<div class="assistant-message-attachment"><span class="assistant-message-attachment-kind">${escapeHtml(attachment.kind === 'pdf' ? 'PDF' : (attachment.kind === 'text' ? 'File' : 'Image'))}</span><span class="assistant-message-attachment-name">${escapeHtml(describeAssistantAttachment(attachment))}</span></div>`).join('')
                         : '';
                     return `
       <div class="assistant-message ${role}">
@@ -4778,8 +4807,11 @@ Preferred answer style:
                 const normalized = normalizeAssistantAttachmentList(attachments);
                 if (!normalized.length) return '';
                 const hasPdf = normalized.some(item => item.kind === 'pdf');
+                const hasText = normalized.some(item => item.kind === 'text');
                 return hasPdf
                     ? 'The latest user message includes attached PDFs. You must inspect the attached documents directly, perform OCR where needed, extract the visible text, tables, form fields, values, dates, names, totals, and key facts, then answer from the attachment contents instead of asking the user to provide the data manually.'
+                    : hasText
+                        ? 'The latest user message includes attached text-like files. You must read the attached file contents directly, preserve structure where useful, extract important fields, tables, values, sections, and key facts, then answer from the file contents instead of asking the user to provide the data manually.'
                     : 'The latest user message includes attached images. You must inspect the attached images directly, perform OCR where needed, extract all readable text, tables, form fields, values, dates, names, totals, and key facts, then answer from the image contents instead of asking the user to provide the data manually.';
             }
 
@@ -4794,10 +4826,17 @@ Preferred answer style:
                             ? normalizeAssistantAttachmentList(currentAttachment)
                             : attachments;
                         if (effectiveAttachments.length) {
+                            const textAttachmentBlocks = effectiveAttachments
+                                .filter(item => item?.kind === 'text' && item?.textContent)
+                                .map(item => ({
+                                    type: 'text',
+                                    text: `Attached file: ${item.name}\n\n${String(item.textContent || '').slice(0, 200000)}`
+                                }));
                             return {
                                 role: msg.role,
                                 content: [
                                     { type: 'text', text: String(msg.content || getDefaultAssistantPromptForAttachment(effectiveAttachments)) },
+                                    ...textAttachmentBlocks,
                                     ...effectiveAttachments
                                         .filter(item => item?.dataUrl)
                                         .map(item => ({ type: 'image_url', image_url: { url: item.dataUrl } }))
@@ -4833,11 +4872,17 @@ Preferred answer style:
                         const storedAttachments = normalizeAssistantAttachmentList(msg.attachments || msg.attachment);
                         const attachmentsForMessage = isLatestAttachment
                             ? normalizeAssistantAttachmentList(currentAttachment)
-                            : storedAttachments.filter(item => item?.fileUri);
+                            : storedAttachments.filter(item => (item?.kind === 'text' && item?.textContent) || canReuseGeminiFileReference(item));
                         const parts = [];
                         const text = String(msg.content || '').trim();
                         if (text) parts.push({ text });
                         attachmentsForMessage.forEach(attachmentForMessage => {
+                            if (attachmentForMessage?.kind === 'text' && attachmentForMessage?.textContent) {
+                                parts.push({
+                                    text: `Attached file: ${attachmentForMessage.name}\n\n${String(attachmentForMessage.textContent || '').slice(0, 200000)}`
+                                });
+                                return;
+                            }
                             if (!attachmentForMessage?.fileUri) return;
                             parts.push({
                                 file_data: {
@@ -4873,6 +4918,15 @@ Preferred answer style:
                     reader.onload = () => resolve(String(reader.result || ''));
                     reader.onerror = () => reject(new Error('Could not read the selected file.'));
                     reader.readAsDataURL(file);
+                });
+            }
+
+            function readFileAsText(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(String(reader.result || ''));
+                    reader.onerror = () => reject(new Error('Could not read the selected text file.'));
+                    reader.readAsText(file);
                 });
             }
 
@@ -4928,8 +4982,21 @@ Preferred answer style:
                 return Promise.all(attachments.map(async item => {
                     const cached = item.id ? assistantAttachmentCache.get(item.id) : null;
                     if (cached && cached.provider === provider) return { ...cached };
+                    if (item.kind === 'text') {
+                        const textContent = item.file ? await readFileAsText(item.file) : String(item.textContent || '');
+                        const prepared = {
+                            ...normalizeAssistantAttachmentMeta({
+                                ...item,
+                                textContent
+                            }),
+                            provider,
+                            textContent
+                        };
+                        if (item.id) assistantAttachmentCache.set(item.id, prepared);
+                        return prepared;
+                    }
                     if (item.kind !== 'image') {
-                        throw new Error('This model only supports image attachments.');
+                        throw new Error('This model only supports image or text attachments.');
                     }
                     const normalizedFile = item.file ? await normalizeAssistantImageFile(item.file) : item.file;
                     const dataUrl = await readFileAsDataUrl(normalizedFile);
@@ -4939,7 +5006,8 @@ Preferred answer style:
                             mimeType: inferAttachmentMimeType(normalizedFile) || item.mimeType
                         }),
                         provider,
-                        dataUrl
+                        dataUrl,
+                        file: item.file || normalizedFile
                     };
                     if (item.id) assistantAttachmentCache.set(item.id, prepared);
                     return prepared;
@@ -5026,14 +5094,29 @@ Preferred answer style:
                 };
             }
 
-            async function prepareGeminiAttachment(attachment, signal) {
+            async function prepareGeminiAttachment(attachment, signal, options = {}) {
                 const attachments = Array.isArray(attachment) ? attachment : normalizeAssistantAttachmentList(attachment);
                 if (!attachments.length) return [];
                 const keys = getProviderKeys('gemini');
                 if (!keys.length) throw new Error('Gemini API key required for file analysis.');
                 return Promise.all(attachments.map(async item => {
                     const cached = item?.id ? assistantAttachmentCache.get(item.id) : null;
-                    if (cached && cached.provider === 'gemini' && cached.fileUri) return { ...cached };
+                    if (!options.forceUpload && cached && cached.provider === 'gemini' && (cached.fileUri || cached.textContent)) return { ...cached };
+                    if (item.kind === 'text') {
+                        const textContent = item.file ? await readFileAsText(item.file) : String(item.textContent || '');
+                        const prepared = {
+                            ...normalizeAssistantAttachmentMeta({
+                                ...item,
+                                provider: 'gemini',
+                                textContent
+                            }),
+                            provider: 'gemini',
+                            textContent,
+                            file: item.file || null
+                        };
+                        if (item.id) assistantAttachmentCache.set(item.id, prepared);
+                        return prepared;
+                    }
                     let lastErr = null;
                     for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
                         try {
@@ -5042,7 +5125,15 @@ Preferred answer style:
                                 : item.file;
                             const uploaded = await uploadGeminiFileWithKey(normalizedFile, keys[keyIndex], signal);
                             const prepared = {
-                                ...normalizeAssistantAttachmentMeta({ ...item, provider: 'gemini', fileUri: uploaded.uri, mimeType: uploaded.mimeType })
+                                ...normalizeAssistantAttachmentMeta({
+                                    ...item,
+                                    provider: 'gemini',
+                                    fileUri: uploaded.uri,
+                                    mimeType: uploaded.mimeType,
+                                    fileName: normalizedFile?.name || item.name,
+                                    uploadedAt: Date.now()
+                                }),
+                                file: item.file || normalizedFile
                             };
                             if (item.id) assistantAttachmentCache.set(item.id, prepared);
                             return prepared;
@@ -5065,7 +5156,14 @@ Preferred answer style:
                     .trim();
             }
 
-            async function requestGeminiAssistantReply(model, preparedAttachment, signal) {
+            function isGeminiExpiredFileError(error) {
+                const message = String(error?.message || error || '').toLowerCase();
+                return message.includes('do not have permission to access the file')
+                    || message.includes('you do not have permission to access the file')
+                    || message.includes('may not exist');
+            }
+
+            async function requestGeminiAssistantReply(model, preparedAttachment, signal, options = {}) {
                 const keys = getProviderKeys('gemini');
                 if (!keys.length) throw new Error('Gemini API key required for file analysis.');
                 const promptContext = getAssistantPromptContext();
@@ -5104,6 +5202,14 @@ Preferred answer style:
                     } catch (err) {
                         lastErr = err;
                     }
+                }
+                const rawPreparedAttachments = Array.isArray(preparedAttachment)
+                    ? preparedAttachment
+                    : (preparedAttachment ? [preparedAttachment] : []);
+                if (!options.retriedExpiredFiles && isGeminiExpiredFileError(lastErr) && rawPreparedAttachments.some(item => item?.file)) {
+                    const refreshedAttachments = await prepareGeminiAttachment(preparedAttachment, signal, { forceUpload: true });
+                    updateDiagnostics({ provider: 'gemini', chatModel: model }, 'assistant-chat retry after Gemini file re-upload');
+                    return requestGeminiAssistantReply(model, refreshedAttachments, signal, { retriedExpiredFiles: true });
                 }
                 throw lastErr || new Error('Gemini assistant request failed.');
             }
