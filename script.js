@@ -193,83 +193,105 @@
       </div>
     </div>
 
-    <!-- Controls -->
-    <div class="controls">
-      <div class="mode-toggle">
-        <button class="mode-btn active" id="modeRealtime" data-mode="realtime"><span class="mode-dot"></span> Live</button>
-        <button class="mode-btn" id="modeQuality" data-mode="quality"><span class="mode-dot"></span> Quality</button>
-        <button class="mode-btn" id="modeFile" data-mode="file"><span class="mode-dot"></span> File</button>
-      </div>
-      <div class="lang-wrap">
-        <span class="lang-label">Lang</span>
-        <select id="langSelect">
-          <option value="auto">Auto-detect</option>
-          <optgroup label="English">
-            <option value="en-IN" data-wlang="en">English - India</option>
-            <option value="en-US" data-wlang="en">English - US</option>
-            <option value="en-GB" data-wlang="en">English - UK</option>
-            <option value="en-AU" data-wlang="en">English - AU</option>
-          </optgroup>
-          <optgroup label="Indian Languages">
-            <option value="hi-IN" data-wlang="hi">Hindi</option>
-            <option value="ta-IN" data-wlang="ta">Tamil</option>
-            <option value="te-IN" data-wlang="te">Telugu</option>
-            <option value="mr-IN" data-wlang="mr">Marathi</option>
-            <option value="bn-IN" data-wlang="bn">Bengali</option>
-            <option value="gu-IN" data-wlang="gu">Gujarati</option>
-            <option value="kn-IN" data-wlang="kn">Kannada</option>
-            <option value="ml-IN" data-wlang="ml">Malayalam</option>
-            <option value="pa-IN" data-wlang="pa">Punjabi</option>
-            <option value="ur-PK" data-wlang="ur">Urdu</option>
-          </optgroup>
-          <optgroup label="Other Languages">
-            <option value="es-ES" data-wlang="es">Spanish</option>
-            <option value="fr-FR" data-wlang="fr">French</option>
-            <option value="de-DE" data-wlang="de">German</option>
-            <option value="ja-JP" data-wlang="ja">Japanese</option>
-            <option value="zh-CN" data-wlang="zh">Mandarin</option>
-            <option value="ar-SA" data-wlang="ar">Arabic</option>
-            <option value="pt-BR" data-wlang="pt">Portuguese</option>
-            <option value="ko-KR" data-wlang="ko">Korean</option>
-            <option value="ru-RU" data-wlang="ru">Russian</option>
-          </optgroup>
-        </select>
-      </div>
-      <div class="spacer"></div>
-      <button class="btn-toggle" id="punctBtn" title="Smart punctuation"><span class="toggle-dot"></span> Punct</button>
-      <button class="btn-toggle" id="autoCopyBtn" title="Auto-copy after silence"><span class="toggle-dot"></span> Auto-Copy</button>
-    </div>
-
-    <div class="workspace-banner">
-      <div class="field">
-        <label for="presetSelect">Preset</label>
-        <select id="presetSelect" class="studio-select">
-          <option value="dictation">Dictation</option>
-          <option value="meeting">Meeting</option>
-          <option value="subtitle">Subtitle</option>
-          <option value="interview">Interview</option>
-          <option value="voice-notes">Voice Notes</option>
-          <option value="prompt">Prompt Builder</option>
-          <option value="build">Build Spec</option>
-          <option value="debug">Debug Report</option>
-          <option value="docs">Docs Notes</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="speakerModeToggle">Speaker labels</label>
-        <button class="btn-toggle" id="speakerModeToggle" title="Render transcript with speaker labels"><span class="toggle-dot"></span> Speakers</button>
-      </div>
-      <div class="field">
-        <label for="autosaveToggle">Workspace autosave</label>
-        <button class="btn-toggle" id="autosaveToggle" title="Autosave workspace in browser"><span class="toggle-dot"></span> Autosave</button>
-      </div>
-      <div class="field">
-        <label>Quick tools</label>
-        <div class="pill-row">
-          <button class="pill-btn preset-pill" id="rebuildTranscriptBtn">Rebuild</button>
-          <button class="pill-btn preset-pill" id="diagToggleBtn">Diagnostics</button>
+    <div class="workspace-command-deck">
+      <!-- Controls -->
+      <div class="controls">
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="modeRealtime" data-mode="realtime"><span class="mode-dot"></span> Live</button>
+          <button class="mode-btn" id="modeQuality" data-mode="quality"><span class="mode-dot"></span> Quality</button>
+          <button class="mode-btn" id="modeFile" data-mode="file"><span class="mode-dot"></span> File</button>
+        </div>
+        <div class="lang-wrap">
+          <span class="lang-label">Lang</span>
+          <select id="langSelect">
+            <option value="auto">Auto-detect</option>
+            <optgroup label="English">
+              <option value="en-IN" data-wlang="en">English - India</option>
+              <option value="en-US" data-wlang="en">English - US</option>
+              <option value="en-GB" data-wlang="en">English - UK</option>
+              <option value="en-AU" data-wlang="en">English - AU</option>
+            </optgroup>
+            <optgroup label="Indian Languages">
+              <option value="hi-IN" data-wlang="hi">Hindi</option>
+              <option value="ta-IN" data-wlang="ta">Tamil</option>
+              <option value="te-IN" data-wlang="te">Telugu</option>
+              <option value="mr-IN" data-wlang="mr">Marathi</option>
+              <option value="bn-IN" data-wlang="bn">Bengali</option>
+              <option value="gu-IN" data-wlang="gu">Gujarati</option>
+              <option value="kn-IN" data-wlang="kn">Kannada</option>
+              <option value="ml-IN" data-wlang="ml">Malayalam</option>
+              <option value="pa-IN" data-wlang="pa">Punjabi</option>
+              <option value="ur-PK" data-wlang="ur">Urdu</option>
+            </optgroup>
+            <optgroup label="Other Languages">
+              <option value="es-ES" data-wlang="es">Spanish</option>
+              <option value="fr-FR" data-wlang="fr">French</option>
+              <option value="de-DE" data-wlang="de">German</option>
+              <option value="ja-JP" data-wlang="ja">Japanese</option>
+              <option value="zh-CN" data-wlang="zh">Mandarin</option>
+              <option value="ar-SA" data-wlang="ar">Arabic</option>
+              <option value="pt-BR" data-wlang="pt">Portuguese</option>
+              <option value="ko-KR" data-wlang="ko">Korean</option>
+              <option value="ru-RU" data-wlang="ru">Russian</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="primary-hints">
+          <span class="primary-hint"><kbd>Space</kbd> start or stop</span>
+          <span class="primary-hint"><kbd>Ctrl O</kbd> open a file</span>
         </div>
       </div>
+
+      <details class="studio-settings">
+        <summary class="studio-settings-toggle">
+          <span class="studio-settings-copy">
+            <span class="studio-settings-kicker">Studio settings</span>
+            <span class="studio-settings-title">Preset, autosave, punctuation, speaker labels, and diagnostics</span>
+          </span>
+          <span class="studio-settings-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="workspace-banner">
+          <div class="field">
+            <label for="presetSelect">Preset</label>
+            <select id="presetSelect" class="studio-select">
+              <option value="dictation">Dictation</option>
+              <option value="meeting">Meeting</option>
+              <option value="subtitle">Subtitle</option>
+              <option value="interview">Interview</option>
+              <option value="voice-notes">Voice Notes</option>
+              <option value="prompt">Prompt Builder</option>
+              <option value="build">Build Spec</option>
+              <option value="debug">Debug Report</option>
+              <option value="docs">Docs Notes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="punctBtn">Smart punctuation</label>
+            <button class="btn-toggle" id="punctBtn" title="Smart punctuation"><span class="toggle-dot"></span> Punct</button>
+          </div>
+          <div class="field">
+            <label for="autoCopyBtn">Auto-copy after silence</label>
+            <button class="btn-toggle" id="autoCopyBtn" title="Auto-copy after silence"><span class="toggle-dot"></span> Auto-Copy</button>
+          </div>
+          <div class="field">
+            <label for="speakerModeToggle">Speaker labels</label>
+            <button class="btn-toggle" id="speakerModeToggle" title="Render transcript with speaker labels"><span class="toggle-dot"></span> Speakers</button>
+          </div>
+          <div class="field">
+            <label for="autosaveToggle">Workspace autosave</label>
+            <button class="btn-toggle" id="autosaveToggle" title="Autosave workspace in browser"><span class="toggle-dot"></span> Autosave</button>
+          </div>
+          <div class="field">
+            <label>Quick tools</label>
+            <div class="pill-row">
+              <button class="pill-btn preset-pill" id="rebuildTranscriptBtn">Rebuild</button>
+              <button class="pill-btn preset-pill" id="diagToggleBtn">Diagnostics</button>
+            </div>
+          </div>
+        </div>
+      </details>
     </div>
     <div class="workspace-shell">
       <aside class="workspace-left-rail">
@@ -336,11 +358,11 @@
               <button class="micro-btn" id="clearAiOutputBtn">Clear</button>
             </div>
           </div>
-          <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="true" aria-controls="aiOutputPanel">
+          <button class="pill-btn preset-pill capture-help-toggle ai-output-toggle" id="aiOutputToggle" type="button" aria-expanded="false" aria-controls="aiOutputPanel">
             <span>AI output tools</span>
             <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="ai-output-panel" id="aiOutputPanel">
+          <div class="ai-output-panel" id="aiOutputPanel" hidden>
             <div class="field full">
               <label for="outputStyleSelect">Output style</label>
               <select id="outputStyleSelect" class="studio-select">
@@ -428,6 +450,12 @@
                 </div>
                 <div class="waveform-overlay" id="waveOverlay"></div>
               </div>
+              <div class="orb-signal-strip" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
               <div class="status-main sr-only-live" id="statusMain">Ready to record</div>
               <div class="status-sub sr-only-live" id="statusSub">Click orb or press Space</div>
               <div class="timer-display sr-only-live" id="timerDisplay">00:00</div>
@@ -465,69 +493,81 @@
             <div class="memory-stack">
               <div class="field full">
                 <label for="memoryPackSelect">Project memory pack</label>
-                <div class="tool-grid">
-                  <div class="field">
-                    <select id="memoryPackSelect" class="studio-select" aria-label="Project memory pack"></select>
-                  </div>
-                  <div class="field">
-                    <input type="text" id="memoryPackNameInput" class="studio-input" placeholder="New pack name">
-                  </div>
-                </div>
-                <div class="inline-actions">
-                  <button class="pill-btn" id="createMemoryPackBtn">Create pack</button>
-                  <button class="pill-btn" id="deleteMemoryPackBtn">Delete pack</button>
-                </div>
+                <select id="memoryPackSelect" class="studio-select" aria-label="Project memory pack"></select>
                 <div class="mini-note" id="memoryPackMeta">Use separate packs for workstreams like Client A, Startup, Personal, or Research.</div>
               </div>
-              <div class="field full">
-                <label for="memoryPromptExport">Import memory prompt</label>
-                <div class="mini-note">Copy this prompt into your other AI provider, export your memory, then paste the result below.</div>
-                <textarea id="memoryPromptExport" class="studio-textarea memory-prompt-box" readonly spellcheck="false"></textarea>
-                <div class="inline-actions">
-                  <button class="pill-btn" id="copyMemoryPromptBtn">Copy prompt</button>
-                </div>
-              </div>
-              <div class="field full">
-                <label for="memoryInput">Imported memory</label>
-                <textarea id="memoryInput" class="studio-textarea memory-input" placeholder="Paste your exported memory here. The app will use it for AI Output and Verba Assistant."></textarea>
-                <div class="mini-note" id="memoryMeta">No imported memory yet. Once saved, it will ground summaries, action items, prompt packs, AI clean, and assistant replies.</div>
-                <div class="inline-actions">
-                  <button class="pill-btn" id="importMemoryBtn">Import memory</button>
-                  <button class="pill-btn" id="clearMemoryBtn">Clear memory</button>
-                </div>
-              </div>
-              <div class="field full">
-                <div class="mini-note">Imported memory is treated as long-term user context. Transcript text remains the source of current facts, while memory supplies preferences, projects, terminology, and working style.</div>
-              </div>
-              <button class="pill-btn preset-pill capture-help-toggle memory-tools-toggle" id="memoryToolsToggle" type="button" aria-expanded="false" aria-controls="memoryToolsPanel">
-                <span>Advanced transcript tools</span>
-                <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="memory-tools-panel" id="memoryToolsPanel" hidden>
-                <div class="field full">
-                  <label for="glossaryInput">Terminology / local replacements</label>
-                  <textarea id="glossaryInput" class="studio-textarea" placeholder="One rule per line - examples:
+              <details class="memory-dropdown">
+                <summary class="memory-dropdown-toggle">
+                  <span>Show more</span>
+                  <span class="memory-dropdown-icon" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                </summary>
+                <div class="memory-dropdown-body">
+                  <div class="field full">
+                    <label for="memoryInput">Imported memory</label>
+                    <textarea id="memoryInput" class="studio-textarea memory-input" placeholder="Paste your exported memory here. The app will use it for AI Output and Verba Assistant."></textarea>
+                    <div class="mini-note" id="memoryMeta">No imported memory yet. Once saved, it will ground summaries, action items, prompt packs, AI clean, and assistant replies.</div>
+                    <div class="inline-actions">
+                      <button class="pill-btn" id="importMemoryBtn">Import memory</button>
+                      <button class="pill-btn" id="clearMemoryBtn">Clear memory</button>
+                    </div>
+                  </div>
+                  <div class="tool-grid">
+                    <div class="field">
+                      <label for="memoryPackNameInput">New pack name</label>
+                      <input type="text" id="memoryPackNameInput" class="studio-input" placeholder="New pack name">
+                    </div>
+                    <div class="field memory-dropdown-actions">
+                      <label>Pack actions</label>
+                      <div class="inline-actions">
+                        <button class="pill-btn" id="createMemoryPackBtn">Create pack</button>
+                        <button class="pill-btn" id="deleteMemoryPackBtn">Delete pack</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="field full">
+                    <label for="memoryPromptExport">Import memory prompt</label>
+                    <div class="mini-note">Copy this prompt into your other AI provider, export your memory, then paste the result below.</div>
+                    <textarea id="memoryPromptExport" class="studio-textarea memory-prompt-box" readonly spellcheck="false"></textarea>
+                    <div class="inline-actions">
+                      <button class="pill-btn" id="copyMemoryPromptBtn">Copy prompt</button>
+                    </div>
+                  </div>
+                  <div class="field full">
+                    <div class="mini-note">Imported memory is treated as long-term user context. Transcript text remains the source of current facts, while memory supplies preferences, projects, terminology, and working style.</div>
+                  </div>
+                  <button class="pill-btn preset-pill capture-help-toggle memory-tools-toggle" id="memoryToolsToggle" type="button" aria-expanded="false" aria-controls="memoryToolsPanel">
+                    <span>Advanced transcript tools</span>
+                    <svg class="capture-help-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <div class="memory-tools-panel" id="memoryToolsPanel" hidden>
+                    <div class="field full">
+                      <label for="glossaryInput">Terminology / local replacements</label>
+                      <textarea id="glossaryInput" class="studio-textarea" placeholder="One rule per line - examples:
 hpcl => HPCL
 n8n => n8n
 qdrant => Qdrant"></textarea>
-                  <div class="mini-note">Applied locally after transcription and whenever you click Apply Glossary.</div>
-                </div>
-                <div class="field full">
-                  <div class="inline-actions">
-                    <button class="pill-btn" id="applyGlossaryBtn">Apply glossary</button>
-                    <button class="pill-btn" id="cleanLocalBtn">Clean locally</button>
-                    <button class="pill-btn" id="redactBtn">Redact PII</button>
-                    <button class="pill-btn" id="saveWorkspaceBtn">Save workspace</button>
-                    <button class="pill-btn" id="exportWorkspaceBtn">Export workspace</button>
-                    <button class="pill-btn" id="importWorkspaceBtn">Import workspace</button>
-                    <button class="pill-btn" id="clearCacheBtn">Clear cache</button>
+                      <div class="mini-note">Applied locally after transcription and whenever you click Apply Glossary.</div>
+                    </div>
+                    <div class="field full">
+                      <div class="inline-actions">
+                        <button class="pill-btn" id="applyGlossaryBtn">Apply glossary</button>
+                        <button class="pill-btn" id="cleanLocalBtn">Clean locally</button>
+                        <button class="pill-btn" id="redactBtn">Redact PII</button>
+                        <button class="pill-btn" id="saveWorkspaceBtn">Save workspace</button>
+                        <button class="pill-btn" id="exportWorkspaceBtn">Export workspace</button>
+                        <button class="pill-btn" id="importWorkspaceBtn">Import workspace</button>
+                        <button class="pill-btn" id="clearCacheBtn">Clear cache</button>
+                      </div>
+                      <input class="import-input" type="file" id="workspaceFileInput" accept=".json,application/json">
+                    </div>
+                    <div class="field full">
+                      <div class="mini-note warning-note">Do not paste real API keys into the transcript, imported memory, or exported workspace if you plan to share the file.</div>
+                    </div>
                   </div>
-                  <input class="import-input" type="file" id="workspaceFileInput" accept=".json,application/json">
                 </div>
-                <div class="field full">
-                  <div class="mini-note warning-note">Do not paste real API keys into the transcript, imported memory, or exported workspace if you plan to share the file.</div>
-                </div>
-              </div>
+              </details>
             </div>
           </div>
         </div>
@@ -559,20 +599,28 @@ qdrant => Qdrant"></textarea>
             <div class="stat-pill" id="wordPill">0 words</div>
             <div class="stat-pill" id="charPill">0 chars</div>
           </div>
-          <div class="summary-meta-grid">
-            <div class="summary-meta-block">
-              <span class="summary-label">Detected language</span>
-              <span class="detected-lang-badge" id="detectedLangBadge" style="display:none"></span>
+          <details class="summary-dropdown">
+            <summary class="summary-dropdown-toggle">
+              <span>More details</span>
+              <span class="summary-dropdown-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </span>
+            </summary>
+            <div class="summary-meta-grid">
+              <div class="summary-meta-block">
+                <span class="summary-label">Detected language</span>
+                <span class="detected-lang-badge" id="detectedLangBadge" style="display:none"></span>
+              </div>
+              <div class="summary-meta-block">
+                <span class="summary-label">Segments</span>
+                <span class="summary-value" id="segCount">0 segments</span>
+              </div>
+              <div class="summary-meta-block">
+                <span class="summary-label">Duration</span>
+                <span class="summary-value" id="durStat">0:00 duration</span>
+              </div>
             </div>
-            <div class="summary-meta-block">
-              <span class="summary-label">Segments</span>
-              <span class="summary-value" id="segCount">0 segments</span>
-            </div>
-            <div class="summary-meta-block">
-              <span class="summary-label">Duration</span>
-              <span class="summary-value" id="durStat">0:00 duration</span>
-            </div>
-          </div>
+          </details>
         </div>
 
         <div class="utility-card utility-card-actions">
@@ -627,7 +675,7 @@ qdrant => Qdrant"></textarea>
       <div class="assistant-panel" id="assistantPanel" hidden>
         <div class="assistant-header">
           <div class="assistant-title">
-            <div class="assistant-mini-bot" aria-hidden="true"></div>
+            <div class="assistant-mini-bot" aria-hidden="true">${getAssistantRobotBadgeMarkup()}</div>
             <div class="assistant-heading">
               <div class="assistant-name">Verba Assistant</div>
               <div class="assistant-sub" id="assistantRuntimeMeta">General + workspace help - grounded in current Verba state</div>
@@ -1543,7 +1591,7 @@ qdrant => Qdrant"></textarea>
                     clearAutoCopyCountdown();
                     autoCopyBtn.classList.remove('auto-copy-active');
 
-                    let interim = '';
+                    const interimParts = [];
                     for (let i = e.resultIndex; i < e.results.length; i++) {
                         const res = e.results[i];
                         let text = res[0].transcript.trim();
@@ -1559,9 +1607,10 @@ qdrant => Qdrant"></textarea>
                             interimEl.classList.remove('idle-hint');
                             state.lastEndTime = Date.now();
                         } else {
-                            interim = text;
+                            if (text) interimParts.push(text);
                         }
                     }
+                    const interim = interimParts.join(' ').trim();
                     if (interim) {
                         state.lastInterimText = interim;
                         interimEl.textContent = interim;
@@ -2228,106 +2277,6 @@ qdrant => Qdrant"></textarea>
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // QUALITY MODE (Record â†’ Whisper)
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-            function startQualityRecording() {
-                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                    state.micStream = stream;
-                    state.recordedChunks = [];
-
-                    // Use the best available format
-                    let mimeType = 'audio/webm;codecs=opus';
-                    if (!MediaRecorder.isTypeSupported(mimeType)) {
-                        mimeType = 'audio/webm';
-                        if (!MediaRecorder.isTypeSupported(mimeType)) {
-                            mimeType = 'audio/ogg;codecs=opus';
-                            if (!MediaRecorder.isTypeSupported(mimeType)) {
-                                mimeType = '';
-                            }
-                        }
-                    }
-
-                    const options = mimeType ? { mimeType } : {};
-                    state.mediaRecorder = new MediaRecorder(stream, options);
-
-                    state.mediaRecorder.ondataavailable = (e) => {
-                        if (e.data.size > 0) state.recordedChunks.push(e.data);
-                    };
-
-                    state.mediaRecorder.onstop = async () => {
-                        const blob = new Blob(state.recordedChunks, { type: state.mediaRecorder.mimeType || 'audio/webm' });
-                        stream.getTracks().forEach(t => t.stop());
-
-                        if (!getProviderKeys().length) {
-                            toast('API key required for Quality mode transcription', 'warning');
-                            return;
-                        }
-
-                        setStatus('Processing recording...', 'Sending to speech-to-text');
-                        interimEl.textContent = 'Transcribing your recording...';
-                        interimEl.classList.remove('idle-hint');
-
-                        try {
-                            // Decode and preprocess
-                            const arrayBuf = await blob.arrayBuffer();
-                            const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
-                            const decoded = await tempCtx.decodeAudioData(arrayBuf);
-                            tempCtx.close();
-
-                            const analysis = analyzeAudio(decoded);
-                            const processed = await processAudioBuffer(decoded, analysis, true);
-                            const resampled = await resampleTo16k(processed);
-                            const wavBlob = audioBufferToWav(resampled);
-
-                            const maxChunkBytes = 24 * 1024 * 1024;
-                            const chunks = chunkWavBlob(resampled, maxChunkBytes);
-                            const wLang = getWhisperLang();
-
-                            const result = await transcribeChunks(chunks, { language: wLang }, null);
-
-                            displayFileResult(result);
-                            if (result.language) {
-                                detectedLangBadge.textContent = result.language.toUpperCase();
-                                detectedLangBadge.style.display = 'inline-block';
-                            }
-                            toast(`Transcribed - ${result.text.split(/\s+/).length} words`, 'success');
-                            scheduleWorkspaceSave();
-                        } catch (err) {
-                            toast('Transcription error: ' + err.message, 'error');
-                        }
-
-                        interimEl.textContent = 'Interim transcription appears here as you speak...';
-                        interimEl.classList.add('idle-hint');
-                        orbTrigger?.setAttribute('aria-pressed', 'false');
-                        setStatus('Ready to record', 'Click orb or press Space');
-                    };
-
-                    state.mediaRecorder.start(1000);
-                    state.isRecording = true;
-                    recPanel.classList.add('recording');
-                    micOuter?.classList.add('recording');
-                    orbTrigger?.setAttribute('aria-pressed', 'true');
-                    setStatus('Recording (Quality)', 'Speak now - tap the orb or press Space to stop');
-                    interimEl.textContent = 'Recording audio for quality transcription...';
-                    setStatus('Recording (Quality)', 'Speak now - transcribes after you stop');
-                    interimEl.classList.remove('idle-hint');
-                    startTimer();
-                    startAudioVisualizer(stream);
-                }).catch(err => {
-                    toast('Microphone access denied', 'error');
-                });
-            }
-
-            function stopQualityRecording() {
-                if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-                    state.mediaRecorder.stop();
-                }
-                state.isRecording = false;
-                recPanel.classList.remove('recording');
-                micOuter?.classList.remove('recording');
-                orbTrigger?.setAttribute('aria-pressed', 'false');
-                stopTimer();
-                stopAudio();
-            }
-
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // AUDIO VISUALIZATION
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -2586,87 +2535,6 @@ qdrant => Qdrant"></textarea>
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // START / STOP
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-            function startRecording() {
-                if (state.mode === 'file') return;
-                if (state.mode === 'quality') {
-                    if (!state.apiKey) {
-                        toast('API key required for Quality mode', 'warning');
-                        apiPanel.classList.add('open');
-                        return;
-                    }
-                    startQualityRecording();
-                    return;
-                }
-                // Realtime mode
-                if (!recognition) {
-                    toast('Speech Recognition not available', 'error');
-                    return;
-                }
-                const lang = langSelect.value;
-                recognition.lang = lang === 'auto' ? 'en-US' : lang;
-                recognition.start();
-                state.isRecording = true;
-                recPanel.classList.add('recording');
-                micOuter?.classList.add('recording');
-                orbTrigger?.setAttribute('aria-pressed', 'true');
-                setStatus('Recording', 'Speak now - the orb reacts to your voice');
-                setStatus('Recording', 'Speak now - tap the orb or press Space to stop');
-                interimEl.classList.remove('idle-hint');
-                interimEl.textContent = '';
-                startTimer();
-                startAudioFromMic();
-                setStatus('Recording', 'Speak now - the orb reacts to your voice');
-                setNoSpeechTimer();
-                updateStats();
-            }
-
-            function stopRecording() {
-                if (state.mode === 'quality') {
-                    stopQualityRecording();
-                    return;
-                }
-                commitPendingRealtimeInterim();
-                state.isRecording = false;
-                state.manualStop = true;
-                clearNoSpeechTimer();
-                clearAutoCopyCountdown();
-                autoCopyBtn.classList.remove('auto-copy-active');
-                clearTimeout(state.restartTimeout); state.restartTimeout = null;
-                try {
-                    if (recognition && typeof recognition.stop === 'function') recognition.stop();
-                    else if (recognition) recognition.abort();
-                } catch (e) {
-                    try { if (recognition) recognition.abort(); } catch (e2) { }
-                }
-                recPanel.classList.remove('recording');
-                micOuter?.classList.remove('recording');
-                orbTrigger?.setAttribute('aria-pressed', 'false');
-                interimEl.textContent = 'Interim transcription appears here as you speak...';
-                interimEl.classList.add('idle-hint');
-                setStatus('Ready to record', 'Click orb or press Space');
-                setStatus('Ready to record', 'Click orb or press Space');
-                stopTimer();
-                stopAudio();
-                scheduleWorkspaceSave();
-            }
-
-            function forceStop() {
-                state.isRecording = false;
-                clearNoSpeechTimer();
-                clearAutoCopyCountdown();
-                autoCopyBtn.classList.remove('auto-copy-active');
-                clearTimeout(state.restartTimeout); state.restartTimeout = null;
-                try { if (recognition) recognition.abort(); } catch (e) { }
-                if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
-                    try { state.mediaRecorder.stop(); } catch (e) { }
-                }
-                recPanel.classList.remove('recording');
-                micOuter?.classList.remove('recording');
-                orbTrigger?.setAttribute('aria-pressed', 'false');
-                stopTimer();
-                stopAudio();
-            }
-
             function scheduleRestart(delay = 50) {
                 clearTimeout(state.restartTimeout);
                 state.restartTimeout = setTimeout(() => {
@@ -2859,32 +2727,6 @@ qdrant => Qdrant"></textarea>
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
             // MODE TOGGLE
             // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-            function setMode(mode) {
-                if (state.isRecording) forceStop();
-                state.mode = mode;
-
-                document.querySelectorAll('.mode-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.mode === mode);
-                });
-
-                uploadPanel.classList.toggle('visible', mode === 'file');
-                recPanel.style.display = mode === 'file' ? 'none' : '';
-                if (mode !== 'file') requestAnimationFrame(() => drawOrbFrame(0, false));
-
-                if (mode === 'file') {
-                    setStatus('File mode', 'Upload an audio file to transcribe');
-                    waveOverlay.textContent = 'Orb preview pauses in file mode';
-                } else if (mode === 'quality') {
-                    setStatus('Ready to record', 'Quality mode - records, then sends to speech-to-text');
-                    setStatus('Ready to record', 'Quality mode - records then sends to Whisper');
-                    waveOverlay.textContent = 'Click the orb to record in quality mode';
-                    setStatus('Ready to record', 'Quality mode - records, then sends to speech-to-text');
-                } else {
-                    setStatus('Ready to record', 'Click orb or press Space');
-                    waveOverlay.textContent = 'Blue voice orb listens for live dictation';
-                }
-            }
-
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 btn.addEventListener('click', () => setMode(btn.dataset.mode));
             });
@@ -4426,6 +4268,32 @@ Preferred answer style:
                 };
             }
 
+            function getAssistantRobotBadgeMarkup() {
+                return `
+                    <div class="robot-3d assistant-robot-badge">
+                        <div class="robot-antenna">
+                            <div class="robot-antenna-dot"></div>
+                            <div class="robot-antenna-stem"></div>
+                        </div>
+                        <div class="robot-head">
+                            <div class="robot-ear robot-ear-l"></div>
+                            <div class="robot-eye"><div class="robot-pupil"></div></div>
+                            <div class="robot-ear robot-ear-r"></div>
+                        </div>
+                        <div class="robot-neck"></div>
+                        <div class="robot-base">
+                            <div class="robot-base-shoulder"></div>
+                            <div class="robot-base-body">
+                                <div class="robot-led robot-led-1"></div>
+                                <div class="robot-led robot-led-2"></div>
+                                <div class="robot-led robot-led-3"></div>
+                            </div>
+                        </div>
+                        <div class="robot-shadow"></div>
+                    </div>
+                `;
+            }
+
             function setAssistantDraft(value) {
                 state.assistant.draft = value;
                 sessionStorage.setItem('vt_assistant_draft', value);
@@ -4444,6 +4312,93 @@ Preferred answer style:
 
             function assistantEscapedHtml(text) {
                 return escapeHtml(String(text || '')).replace(/\n/g, '<br>');
+            }
+
+            function parseAssistantThinking(rawText) {
+                const raw = String(rawText || '').replace(/\r\n/g, '\n');
+                const thinkMatches = [...raw.matchAll(/<think>([\s\S]*?)<\/think>/gi)];
+                if (thinkMatches.length) {
+                    const thinking = thinkMatches
+                        .map(match => normalizeAssistantText(match[1] || ''))
+                        .filter(Boolean)
+                        .join('\n\n');
+                    const output = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                    return { thinking, output };
+                }
+                if (/^\s*<think>/i.test(raw) && !/<\/think>/i.test(raw)) {
+                    return {
+                        thinking: normalizeAssistantText(raw.replace(/^\s*<think>/i, '').trim()),
+                        output: ''
+                    };
+                }
+                return { thinking: '', output: raw.trim() };
+            }
+
+            function renderAssistantTextBlockHtml(text) {
+                const normalized = normalizeAssistantText(text);
+                return normalized ? `<div class="assistant-rich-text">${assistantEscapedHtml(normalized)}</div>` : '';
+            }
+
+            function renderAssistantCodeBlockHtml(code, language = '') {
+                const safeCode = String(code || '').replace(/\s+$/, '');
+                const safeLanguage = String(language || '').trim();
+                const encoded = escapeHtml(safeCode);
+                const encodedAttr = encodeURIComponent(safeCode);
+                return `
+                    <div class="assistant-code-block">
+                        <div class="assistant-code-head">
+                            <span class="assistant-code-lang">${escapeHtml(safeLanguage || 'Code')}</span>
+                            <button class="assistant-code-copy" type="button" data-copy-code="${encodedAttr}">Copy code</button>
+                        </div>
+                        <pre><code>${encoded}</code></pre>
+                    </div>
+                `;
+            }
+
+            function renderAssistantStructuredHtml(text) {
+                const raw = String(text || '').replace(/\r\n/g, '\n');
+                if (!raw.trim()) return '';
+                const parts = raw.split(/```([^\n`]*)\n([\s\S]*?)```/g);
+                let html = '';
+                for (let i = 0; i < parts.length; i++) {
+                    if (i % 3 === 0) {
+                        html += renderAssistantTextBlockHtml(parts[i]);
+                    } else if ((i % 3) === 1) {
+                        const language = parts[i];
+                        const code = parts[i + 1] || '';
+                        html += renderAssistantCodeBlockHtml(code, language);
+                        i += 1;
+                    }
+                }
+                return html || renderAssistantTextBlockHtml(raw);
+            }
+
+            function renderAssistantResponseHtml(rawText) {
+                const parsed = parseAssistantThinking(rawText);
+                const thinkingHtml = parsed.thinking
+                    ? `
+                        <div class="assistant-think-block">
+                            <div class="assistant-think-head">
+                                <span class="assistant-thinking-label">Thinking...</span>
+                                <div class="assistant-thinking-dots" aria-hidden="true">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="assistant-think-body">${assistantEscapedHtml(parsed.thinking)}</div>
+                        </div>
+                    `
+                    : '';
+                const outputHtml = parsed.output ? renderAssistantStructuredHtml(parsed.output) : '';
+                return `${thinkingHtml}${outputHtml}`;
+            }
+
+            function normalizeAssistantResponsePayload(text) {
+                return String(text || '')
+                    .replace(/\r\n/g, '\n')
+                    .replace(/\n{3,}/g, '\n\n')
+                    .trim();
             }
 
             function normalizeAssistantText(text) {
@@ -4703,22 +4658,22 @@ Preferred answer style:
                 const messageMarkup = msgs.map(msg => {
                     const role = msg.role === 'user' ? 'user' : 'assistant';
                     const displayText = role === 'assistant'
-                        ? normalizeAssistantText(msg.content || '')
-                        : String(msg.content || '');
+                        ? renderAssistantResponseHtml(msg.content || '')
+                        : assistantEscapedHtml(String(msg.content || ''));
                     const attachments = normalizeAssistantAttachmentList(msg.attachments || msg.attachment);
                     const attachmentMarkup = attachments.length
                         ? attachments.map(attachment => `<div class="assistant-message-attachment"><span class="assistant-message-attachment-kind">${escapeHtml(attachment.kind === 'pdf' ? 'PDF' : (attachment.kind === 'text' ? 'File' : 'Image'))}</span><span class="assistant-message-attachment-name">${escapeHtml(describeAssistantAttachment(attachment))}</span></div>`).join('')
                         : '';
                     return `
       <div class="assistant-message ${role}">
-        ${role === 'assistant' ? '<div class="assistant-avatar-dot" aria-hidden="true"></div>' : ''}
-        <div class="assistant-bubble">${attachmentMarkup}${assistantEscapedHtml(displayText)}</div>
+        ${role === 'assistant' ? `<div class="assistant-avatar-dot" aria-hidden="true">${getAssistantRobotBadgeMarkup()}</div>` : ''}
+        <div class="assistant-bubble">${attachmentMarkup}${displayText}</div>
       </div>`;
                 }).join('');
                 const thinkingMarkup = state.assistant.isSending
                     ? `
       <div class="assistant-message assistant assistant-thinking" aria-live="polite" aria-label="Assistant is generating a response">
-        <div class="assistant-avatar-dot" aria-hidden="true"></div>
+        <div class="assistant-avatar-dot" aria-hidden="true">${getAssistantRobotBadgeMarkup()}</div>
         <div class="assistant-bubble assistant-thinking-bubble">
           <div class="assistant-thinking-label">Generating response...</div>
           <div class="assistant-thinking-dots" aria-hidden="true">
@@ -5259,7 +5214,7 @@ Preferred answer style:
                     let out = '';
                     if (provider === 'gemini') {
                         const result = await requestGeminiAssistantReply(model, preparedAttachment);
-                        out = normalizeAssistantText(extractGeminiText(result));
+                        out = normalizeAssistantResponsePayload(extractGeminiText(result));
                     } else {
                         const result = await requestWithProvider({
                             provider,
@@ -5278,7 +5233,7 @@ Preferred answer style:
                             maxRetries: 2,
                             syncPrimaryKey: provider === state.apiProvider
                         });
-                        out = normalizeAssistantText(result?.choices?.[0]?.message?.content || '');
+                        out = normalizeAssistantResponsePayload(result?.choices?.[0]?.message?.content || '');
                     }
                     pushAssistantMessage('assistant', out || 'I could not generate a grounded answer for that app question.');
                     updateDiagnostics({ provider, chatModel: model }, 'assistant reply ready');
@@ -5344,6 +5299,10 @@ Preferred answer style:
                     assistantLauncher.style.setProperty('--robot-ry', ry.toFixed(2) + 'deg');
                     assistantLauncher.style.setProperty('--robot-px', px.toFixed(2) + 'px');
                     assistantLauncher.style.setProperty('--robot-py', py.toFixed(2) + 'px');
+                    document.documentElement.style.setProperty('--assistant-robot-rx', rx.toFixed(2) + 'deg');
+                    document.documentElement.style.setProperty('--assistant-robot-ry', ry.toFixed(2) + 'deg');
+                    document.documentElement.style.setProperty('--assistant-robot-px', px.toFixed(2) + 'px');
+                    document.documentElement.style.setProperty('--assistant-robot-py', py.toFixed(2) + 'px');
                 }
                 document.addEventListener('mousemove', (e) => updateRobot(e.clientX, e.clientY));
                 // Touch support
@@ -5366,6 +5325,19 @@ Preferred answer style:
                     e.preventDefault();
                     submitAssistantDraft();
                 }
+            });
+            assistantMessages?.addEventListener('click', (e) => {
+                const copyBtn = e.target?.closest?.('.assistant-code-copy');
+                if (!copyBtn) return;
+                const encoded = copyBtn.getAttribute('data-copy-code') || '';
+                let code = '';
+                try {
+                    code = decodeURIComponent(encoded);
+                } catch (err) {
+                    code = encoded;
+                }
+                if (!code) return;
+                copyToClipboard(code, () => toast('Code copied', 'success'));
             });
             ['dragover', 'dragenter'].forEach(evt => {
                 assistantInputWrap?.addEventListener(evt, (e) => {
@@ -6335,13 +6307,17 @@ Preferred answer style:
             function setMode(mode, options = {}) {
                 if (state.isRecording) forceStop();
                 let nextMode = mode;
-                if (nextMode === 'realtime' && (!canUseLiveMode() || state.captureSource !== 'mic')) {
+                if (nextMode === 'realtime' && state.captureSource !== 'mic') {
+                    setCaptureSource('mic', { silent: true, keepHelp: false });
                     if (!options.silent) {
-                        toast(state.captureSource !== 'mic'
-                            ? 'Live mode only works with the microphone. Switched to Quality.'
-                            : 'Live mode is limited in this browser. Switched to Quality.', 'warning', 3600);
+                        toast('Switched capture source to Microphone for Live mode.', 'info', 3200);
                     }
-                    nextMode = canUseQualityMode() ? 'quality' : 'file';
+                }
+                if (nextMode === 'realtime' && !canUseLiveMode()) {
+                    if (!options.silent) {
+                        toast('Live mode is limited in this browser. Switched to Quality.', 'warning', 3600);
+                    }
+                    nextMode = canUseQualityMode('mic') ? 'quality' : 'file';
                 }
                 if (nextMode === 'quality' && state.captureSource !== 'external-help' && !canUseQualityMode()) {
                     if (!options.silent) toast('Quality capture is limited here. Switched to File mode.', 'warning', 3600);
@@ -6654,7 +6630,7 @@ Preferred answer style:
             autoCopyBtn.classList.toggle('on', state.autoCopyEnabled);
             speakerModeToggle.classList.toggle('on', state.speakerMode);
             autosaveToggle.classList.toggle('on', state.autosaveEnabled);
-            setAiOutputOpen(!isTouchPrimary());
+            setAiOutputOpen(false);
             renderMemoryUi();
             updateStats();
             updateTranscribeBtn();
